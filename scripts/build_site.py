@@ -213,17 +213,17 @@ def render_layout(
   <body class="{html.escape(body_class)}">
     <header class="masthead">
       <div class="layout">
-        <p class="eyebrow">Strobe Talbott FOIA MVP</p>
+        <p class="eyebrow">Research Portal · FOIA Case {EXPECTED_CASE_NUMBER}</p>
         <div class="masthead-row">
           <div class="title-lockup">
             <h1>{html.escape(site_title)}</h1>
-            <p class="masthead-note">Sample-first static publication workflow for FRUS compilers and Clinton administration researchers.</p>
+            <p class="masthead-note">A research portal for FRUS compilers and historians of Clinton-era diplomacy. Document metadata harvested from the State Department FOIA Library; PDFs hosted at the source.</p>
           </div>
           <nav class="site-nav" aria-label="Primary">
             {nav_link("Collection", home_url, current_page == "collection")}
             {nav_link("Manifest", manifest_url, current_page == "manifest")}
             {nav_link("Keyword Search", search_url, current_page == "search")}
-            {nav_link("Semantic Prototype", semantic_url, current_page == "semantic")}
+            {nav_link("Semantic Search", semantic_url, current_page == "semantic")}
           </nav>
         </div>
       </div>
@@ -233,7 +233,8 @@ def render_layout(
     </main>
     <footer class="site-footer">
       <div class="layout">
-        <p>This MVP uses synthetic sample records for workflow testing. It does not publish the full PDF corpus.</p>
+        <p class="disclaimer">Unofficial research tool. Not affiliated with the U.S. Department of State.</p>
+        <p>Document metadata is harvested from the State Department FOIA Library for case {EXPECTED_CASE_NUMBER}. PDFs are linked at their original source on <code>foia.state.gov</code> and are not redistributed by this site.</p>
       </div>
     </footer>{script_tags}
   </body>
@@ -256,7 +257,7 @@ def render_index_page(
             <td>{html.escape(record.date)}</td>
             <td>
               <strong>{html.escape(record.title)}</strong>
-              <p class="table-snippet">{html.escape(snippet or "Placeholder record ready for generated text.")}</p>
+              <p class="table-snippet">{html.escape(snippet or "Metadata only · extracted text not yet ingested.")}</p>
             </td>
             <td>{html.escape(record.release_status)}</td>
             <td><a class="inline-link" href="{html.escape(record.source_pdf_url)}">Source PDF</a></td>
@@ -270,8 +271,8 @@ def render_index_page(
         manifest_callout = f"""
       <section class="card">
         <p class="eyebrow">Full FOIA manifest</p>
-        <h2>{csv_count} catalogued documents now available</h2>
-        <p>The full document manifest harvested from the State Department FOIA Library for case {EXPECTED_CASE_NUMBER} is published on this site. Each row links directly to the original PDF on <code>foia.state.gov</code>.</p>
+        <h2>{csv_count:,} catalogued documents</h2>
+        <p>The complete document manifest harvested from the State Department FOIA Library for case {EXPECTED_CASE_NUMBER} is published on this site. Each row links directly to the original PDF on <code>foia.state.gov</code>.</p>
         <div class="action-row">
           <a class="button-link" href="./manifest.html">Browse the full manifest</a>
           <a class="button-link button-link-secondary" href="./data/manifest.csv" download>Download manifest.csv</a>
@@ -279,32 +280,32 @@ def render_index_page(
       </section>"""
 
     body = f"""      <section class="card hero-card">
-        <p class="eyebrow">Public history workflow</p>
-        <h2>Sample document register for case {EXPECTED_CASE_NUMBER}</h2>
-        <p class="lede">This sample site shows how a static GitHub Pages publication can organize FOIA metadata, extracted text, keyword search, and a future semantic discovery layer for FRUS compilers and historians.</p>
-        <p>The current build uses placeholder records only. It is designed to prove the workflow before a real State Department FOIA manifest harvest is connected.</p>
+        <p class="eyebrow">Strobe Talbott · Clinton Administration</p>
+        <h2>Document register for FOIA case {EXPECTED_CASE_NUMBER}</h2>
+        <p class="lede">A research portal that organizes State Department FOIA metadata, extracted text, keyword search, and a semantic discovery layer for FRUS compilers and historians of late-twentieth-century U.S. diplomacy.</p>
+        <p>Document pages cite the original FOIA release. PDFs remain hosted at <code>foia.state.gov</code> and are not redistributed by this site.</p>
         <div class="action-row">
           <a class="button-link" href="./manifest.html">Browse FOIA manifest</a>
           <a class="button-link button-link-secondary" href="./search.html">Keyword search</a>
-          <a class="button-link button-link-secondary" href="./semantic.html">Semantic prototype</a>
+          <a class="button-link button-link-secondary" href="./semantic.html">Semantic search</a>
         </div>
       </section>{manifest_callout}
       <section class="summary-grid">
         <article class="card stat-card">
-          <p class="eyebrow">Project Scope</p>
+          <p class="eyebrow">Annotated record</p>
           <h2>{len(records)}</h2>
-          <p class="stat-copy">sample documents in the current manifest</p>
+          <p class="stat-copy">documents with full per-page metadata, extracted text, and citation block</p>
         </article>
         <article class="card">
-          <p class="eyebrow">Collection Notes</p>
+          <p class="eyebrow">Editorial method</p>
           <h2>Search-ready static pages</h2>
-          <p>Each document page includes bibliographic metadata, visible extracted text, and a direct source URL so Pagefind and future semantic tools can surface meaningful results.</p>
+          <p>Each document page carries bibliographic metadata, visible extracted text, and a direct source URL, so keyword search and future semantic tools can surface useful results without a backend.</p>
         </article>
       </section>
       <section class="card">
         <div class="section-heading">
-          <h2>Sample documents</h2>
-          <p>Document count: {len(records)} sample placeholder records</p>
+          <h2>Document register</h2>
+          <p>{len(records)} annotated records</p>
         </div>
         <div class="table-wrap">
           <table class="document-table">
@@ -338,18 +339,31 @@ def render_index_page(
 
 
 def render_search_page(site_title: str) -> str:
-    body = """      <section class="card hero-card">
+    body = f"""      <section class="card hero-card">
         <p class="eyebrow">Keyword Search</p>
-        <h2>Search the FOIA manifest for case F-2017-13804</h2>
-        <p class="lede">Search every catalogued document in <code>data/manifest.csv</code> by document ID, date, title, or source PDF URL. Results link directly to the original State Department PDF.</p>
+        <h2>Search the document manifest</h2>
+        <p class="lede">Query the catalogued FOIA records for case {EXPECTED_CASE_NUMBER} by document identifier, date, title fragment, or source PDF URL. Each result links directly to the original State Department PDF.</p>
         <p id="pagefind-status" class="status-pill">Loading manifest…</p>
       </section>
       <section class="card">
+        <div class="section-heading">
+          <h2>Query the catalogue</h2>
+          <p class="result-meta">Browser-based search · no server required</p>
+        </div>
         <div id="search-interface" class="search-shell"></div>
+        <div class="search-tips" aria-label="Search tips">
+          <strong>Search tips</strong>
+          <p>Combine tokens to narrow your search. Try a document identifier such as <code>C09000008</code>, a four-digit year such as <code>1994</code>, a release-status fragment, or a phrase from a title like <code>NATO</code> or <code>Talbott</code>.</p>
+        </div>
       </section>
       <section class="card">
-        <h2>How it works</h2>
-        <p>The page loads the published manifest (<a class="inline-link" href="./assets/search/manifest.json">manifest.json</a> with a CSV fallback to <a class="inline-link" href="./data/manifest.csv">manifest.csv</a>) and matches every query token against each record's document ID, date, title, and PDF URL. Search runs entirely in the browser — no server required.</p>
+        <div class="section-heading">
+          <h2>About this search</h2>
+          <p class="result-meta">Static index · client-side ranking</p>
+        </div>
+        <p>The page loads the published manifest (<a class="inline-link" href="./assets/search/manifest.json">manifest.json</a>, with a CSV fallback to <a class="inline-link" href="./data/manifest.csv">manifest.csv</a>) and matches every query token against each record's document ID, date, title, and PDF URL. Ranking weights identifier matches above titles, dates, and URLs. The full index is shipped with the site and runs entirely in the browser.</p>
+        <hr class="gold-rule">
+        <p class="result-meta">For bulk analysis, download <a class="inline-link" href="./data/manifest.csv" download>manifest.csv</a>. For full-text discovery across extracted document text, see the <a class="inline-link" href="./semantic.html">semantic search</a> prototype.</p>
       </section>"""
 
     return render_layout(
@@ -358,7 +372,7 @@ def render_search_page(site_title: str) -> str:
         root_prefix=".",
         body_class="page-search",
         body=body,
-        page_description="Keyword search across the FOIA document manifest for case F-2017-13804.",
+        page_description=f"Keyword search across the FOIA document manifest for case {EXPECTED_CASE_NUMBER}.",
         current_page="search",
         script_paths=["./assets/js/site.js", "./assets/js/search.js"],
     )
@@ -366,11 +380,11 @@ def render_search_page(site_title: str) -> str:
 
 def render_semantic_page(site_title: str) -> str:
     body = """      <section class="card hero-card">
-        <p class="eyebrow">AI-enhanced / semantic search prototype</p>
-        <h2>Top matching chunks from precomputed sample text</h2>
-        <p class="lede">This MVP does not use real embeddings yet. It loads chunk data generated at build time and ranks candidate passages by keyword overlap while preserving a clean upgrade path to vectors later.</p>
+        <p class="eyebrow">Semantic Search</p>
+        <h2>Top matching passages from extracted document text</h2>
+        <p class="lede">Semantic search ranks candidate passages from the precomputed chunk index. The current build uses keyword-overlap scoring and is structured so vector embeddings can be substituted without changes to the page interface.</p>
         <div class="notice">
-          <strong>Prototype notice.</strong> The ranking below is an intentionally lightweight approximation for interface and workflow testing.
+          The ranking below is a lightweight approximation suitable for browse-and-discover research; cite the source PDF rather than the snippet.
         </div>
       </section>
       <section class="card">
@@ -419,7 +433,7 @@ def render_document_page(
         <p class="eyebrow">Document Record</p>
         <h2 data-pagefind-meta="title">{html.escape(record.title)}</h2>
         <p class="document-summary">{html.escape(record.date)} · {html.escape(record.case_number)} · Doc. {html.escape(record.id)} · {html.escape(record.release_status)}</p>
-        <p class="lede">{html.escape(snippet or 'Sample placeholder record for MVP testing.')}</p>
+        <p class="lede">{html.escape(snippet or 'Metadata-only entry. Extracted text has not yet been ingested for this record.')}</p>
         <div class="action-row">
           <a class="button-link" href="{html.escape(record.source_pdf_url)}">Open Source PDF</a>
           <button
@@ -513,9 +527,9 @@ def render_manifest_page(entries: list[ManifestEntry], site_title: str) -> str:
         )
 
     body = f"""      <section class="card hero-card">
-        <p class="eyebrow">FOIA case manifest</p>
+        <p class="eyebrow">Full FOIA case manifest</p>
         <h2>Document manifest for case {EXPECTED_CASE_NUMBER}</h2>
-        <p class="lede">This page lists every record currently catalogued in <code>data/manifest.csv</code>. Each row links directly to the original PDF on the State Department FOIA Library. Use the filter box to narrow by document ID, date, or title keyword.</p>
+        <p class="lede">Every record catalogued in <code>data/manifest.csv</code>. Each row links directly to the original PDF on the State Department FOIA Library. Use the filter box to narrow by document identifier, date, or title fragment.</p>
         <div class="action-row">
           <a class="button-link" href="./data/manifest.csv" download>Download manifest.csv</a>
           <a class="button-link button-link-secondary" href="./index.html">Back to collection overview</a>

@@ -3,88 +3,140 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Strobe Talbott FOIA Case F-2017-13804</title>
-    <meta name="description" content="Public GitHub Pages site for Strobe Talbott FOIA case F-2017-13804. Browse the full document manifest and download metadata as CSV.">
+    <title>Strobe Talbott FOIA Case F-2017-13804 — Research Portal</title>
+    <meta name="description" content="Research portal for Strobe Talbott FOIA case F-2017-13804. Browse the document manifest, search by keyword, and link directly to State Department source PDFs.">
     <style>
       :root {
-        --ink: #1c1f25;
-        --muted: #4a5161;
-        --accent: #1f4f8a;
-        --accent-hover: #15396a;
-        --bg: #f7f7f4;
-        --card: #ffffff;
-        --border: #d9d9d3;
+        --ruby: #5B1A18;
+        --ruby-deep: #3F1010;
+        --ruby-bright: #6B1D1D;
+        --gold: #C9A84C;
+        --gold-bright: #D4AF37;
+        --gold-soft: #E5CC7A;
+        --gold-pale: #F1E3B6;
+        --ink: #1B1410;
+        --ink-soft: #463A2E;
+        --parchment: #F4ECDA;
+        --parchment-pale: #FAF5E6;
+        --parchment-warm: #EDE2C7;
       }
       * { box-sizing: border-box; }
       body {
         margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        background: var(--bg);
+        font-family: "Iowan Old Style", "Hoefler Text", "Adobe Caslon Pro", "Palatino Linotype", Georgia, "Times New Roman", Times, serif;
+        background: var(--parchment);
         color: var(--ink);
-        line-height: 1.55;
+        line-height: 1.6;
+        font-size: 17px;
       }
-      .layout { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+      .layout { width: min(960px, calc(100% - 2rem)); margin: 0 auto; }
       header.masthead {
-        background: var(--ink);
-        color: #f5f3ec;
-        padding: 48px 0 40px;
-        border-bottom: 4px solid var(--accent);
+        position: relative;
+        background:
+          repeating-linear-gradient(45deg, rgba(0,0,0,0.04) 0, rgba(0,0,0,0.04) 1px, transparent 1px, transparent 4px),
+          repeating-linear-gradient(-45deg, rgba(255,255,255,0.025) 0, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 4px),
+          linear-gradient(180deg, var(--ruby-bright) 0%, var(--ruby) 55%, var(--ruby-deep) 100%);
+        color: var(--gold-pale);
+        padding: 2.4rem 0 2rem;
+        border-top: 6px solid var(--gold);
+        box-shadow: inset 0 -3px 0 var(--gold), 0 4px 0 var(--ruby-deep);
       }
       .eyebrow {
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
+        margin: 0 0 0.7rem;
+        color: var(--gold-soft);
+        font-family: "Trajan Pro", "Cinzel", "Optima", Georgia, serif;
         font-size: 0.78rem;
-        color: #c9c2ad;
-        margin: 0 0 8px;
-      }
-      header h1 { margin: 0 0 8px; font-size: 1.85rem; line-height: 1.2; }
-      header p { margin: 0; color: #d8d3c0; max-width: 640px; }
-      main { padding: 32px 0 64px; }
-      .card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        padding: 28px;
-        margin: 0 0 24px;
-      }
-      .card h2 { margin: 0 0 12px; font-size: 1.35rem; }
-      .card p { margin: 0 0 12px; color: var(--muted); }
-      .action-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
-      .button-link {
-        display: inline-block;
-        background: var(--accent);
-        color: #fff;
-        padding: 10px 18px;
-        border-radius: 4px;
-        text-decoration: none;
         font-weight: 600;
-        font-size: 0.95rem;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
       }
-      .button-link:hover { background: var(--accent-hover); }
+      header h1 {
+        margin: 0 0 0.4rem;
+        font-family: "Trajan Pro", "Cinzel", "Iowan Old Style", "Hoefler Text", Georgia, serif;
+        font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+        line-height: 1.2;
+        color: var(--parchment-pale);
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+      }
+      header p { margin: 0; color: var(--gold-pale); max-width: 640px; font-style: italic; opacity: 0.95; }
+      main { padding: 2rem 0 2rem; }
+      .card {
+        position: relative;
+        background: var(--parchment-pale);
+        border: 1px solid var(--parchment-warm);
+        border-top: 3px solid var(--gold);
+        border-radius: 4px;
+        padding: 1.6rem 1.7rem;
+        margin: 0 0 1.2rem;
+        box-shadow: 0 4px 12px rgba(27, 20, 16, 0.08);
+      }
+      .card h2 {
+        margin: 0 0 0.55rem;
+        font-family: "Trajan Pro", "Cinzel", "Iowan Old Style", Georgia, serif;
+        font-size: 1.35rem;
+        color: var(--ruby-deep);
+      }
+      .card p { margin: 0 0 0.8rem; color: var(--ink); }
+      .action-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1rem; }
+      .button-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.6rem;
+        padding: 0.65rem 1.15rem;
+        background: var(--ruby);
+        color: var(--gold-pale);
+        text-decoration: none;
+        font-family: "Trajan Pro", "Cinzel", "Optima", Georgia, serif;
+        font-size: 0.82rem;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        border: 1px solid var(--ruby);
+        border-radius: 2px;
+      }
+      .button-link:hover { background: var(--ruby-deep); border-color: var(--ruby-deep); color: var(--gold); }
       .button-link-secondary {
         background: transparent;
-        color: var(--accent);
-        border: 1px solid var(--accent);
+        color: var(--ruby);
+        border-color: var(--ruby);
       }
-      .button-link-secondary:hover { background: var(--accent); color: #fff; }
-      ul.link-list { padding-left: 20px; margin: 12px 0 0; }
-      ul.link-list li { margin-bottom: 6px; }
-      ul.link-list a { color: var(--accent); }
+      .button-link-secondary:hover { background: var(--ruby); color: var(--gold-pale); }
+      ul.link-list { padding-left: 1.2rem; margin: 0.8rem 0 0; }
+      ul.link-list li { margin-bottom: 0.45rem; }
+      ul.link-list a { color: var(--ruby); }
       footer {
-        border-top: 1px solid var(--border);
-        padding: 24px 0;
-        color: var(--muted);
-        font-size: 0.9rem;
+        border-top: 1px solid var(--gold-soft);
+        padding: 1.5rem 0 2.2rem;
+        color: var(--ink-soft);
+        font-size: 0.92rem;
+        background: linear-gradient(180deg, transparent 0%, rgba(241, 227, 182, 0.25) 100%);
       }
-      code { background: #efeee7; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+      footer p { margin: 0 0 0.4rem; font-style: italic; }
+      footer .disclaimer {
+        font-style: normal;
+        font-family: "Trajan Pro", "Cinzel", "Optima", Georgia, serif;
+        font-size: 0.72rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ruby-deep);
+        font-weight: 600;
+      }
+      code {
+        background: var(--parchment);
+        border: 1px solid var(--parchment-warm);
+        padding: 0.05rem 0.35rem;
+        border-radius: 2px;
+        font-size: 0.92em;
+        color: var(--ruby-deep);
+      }
     </style>
   </head>
   <body>
     <header class="masthead">
       <div class="layout">
-        <p class="eyebrow">Strobe Talbott FOIA MVP</p>
+        <p class="eyebrow">Research Portal · FOIA Case F-2017-13804</p>
         <h1>Strobe Talbott FOIA Case F-2017-13804</h1>
-        <p>Public document register harvested from the State Department FOIA Library, prepared for FRUS compilers and historians working on Clinton administration volumes.</p>
+        <p>A document register for FRUS compilers and historians of Clinton-era diplomacy. Metadata harvested from the State Department FOIA Library; PDFs hosted at the source.</p>
       </div>
     </header>
     <main class="layout">
@@ -101,22 +153,23 @@
         <p class="eyebrow">Site sections</p>
         <h2>Explore the publication</h2>
         <ul class="link-list">
-          <li><a href="./site/index.html">Project overview and sample document collection</a></li>
+          <li><a href="./site/index.html">Project overview and document register</a></li>
           <li><a href="./site/manifest.html">Full FOIA manifest (1,474 documents with PDF links)</a></li>
-          <li><a href="./site/search.html">Keyword search prototype</a></li>
-          <li><a href="./site/semantic.html">Semantic search prototype</a></li>
+          <li><a href="./site/search.html">Keyword search</a></li>
+          <li><a href="./site/semantic.html">Semantic search</a></li>
           <li><a href="./data/manifest.csv">Raw manifest CSV (downloadable metadata)</a></li>
         </ul>
       </section>
       <section class="card">
         <p class="eyebrow">About this site</p>
         <h2>Static publication workflow</h2>
-        <p>This site is generated from a Python harvesting and build pipeline and deployed as static HTML to GitHub Pages. PDFs are not stored in this repository; the manifest links to the originals on the State Department FOIA site. See the <a href="https://github.com/therealjameswilson/strobe-talbott-foia">project README on GitHub</a> for build instructions and methodology.</p>
+        <p>The site is generated from a Python harvesting and build pipeline and deployed as static HTML to GitHub Pages. PDFs are not stored in this repository; the manifest links to the originals on the State Department FOIA site. See the <a href="https://github.com/therealjameswilson/strobe-talbott-foia">project README on GitHub</a> for build instructions and methodology.</p>
       </section>
     </main>
     <footer>
       <div class="layout">
-        <p>This MVP catalogs publicly released FOIA records. PDFs are hosted by the U.S. Department of State at <code>foia.state.gov</code>.</p>
+        <p class="disclaimer">Unofficial research tool. Not affiliated with the U.S. Department of State.</p>
+        <p>Document metadata is harvested from the State Department FOIA Library for case F-2017-13804. PDFs are hosted at <code>foia.state.gov</code> and are not redistributed by this site.</p>
       </div>
     </footer>
   </body>

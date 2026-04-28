@@ -31,13 +31,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: npm
 
       - name: Install Python dependencies
         run: pip install -r requirements.txt
 
       - name: Install Node dependencies
-        run: npm install
+        run: npm install --no-package-lock --no-audit --no-fund
 
       - name: Build site
         run: npm run build

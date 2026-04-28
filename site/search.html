@@ -10,17 +10,17 @@
   <body class="page-search">
     <header class="masthead">
       <div class="layout">
-        <p class="eyebrow">Strobe Talbott FOIA MVP</p>
+        <p class="eyebrow">Research Portal · FOIA Case F-2017-13804</p>
         <div class="masthead-row">
           <div class="title-lockup">
             <h1>Strobe Talbott FOIA Case F-2017-13804</h1>
-            <p class="masthead-note">Sample-first static publication workflow for FRUS compilers and Clinton administration researchers.</p>
+            <p class="masthead-note">A research portal for FRUS compilers and historians of Clinton-era diplomacy. Document metadata harvested from the State Department FOIA Library; PDFs hosted at the source.</p>
           </div>
           <nav class="site-nav" aria-label="Primary">
             <a href="./index.html">Collection</a>
             <a href="./manifest.html">Manifest</a>
             <a href="./search.html" aria-current="page">Keyword Search</a>
-            <a href="./semantic.html">Semantic Prototype</a>
+            <a href="./semantic.html">Semantic Search</a>
           </nav>
         </div>
       </div>
@@ -28,21 +28,35 @@
     <main class="layout">
       <section class="card hero-card">
         <p class="eyebrow">Keyword Search</p>
-        <h2>Search the FOIA manifest for case F-2017-13804</h2>
-        <p class="lede">Search every catalogued document in <code>data/manifest.csv</code> by document ID, date, title, or source PDF URL. Results link directly to the original State Department PDF.</p>
+        <h2>Search the document manifest</h2>
+        <p class="lede">Query the catalogued FOIA records for case F-2017-13804 by document identifier, date, title fragment, or source PDF URL. Each result links directly to the original State Department PDF.</p>
         <p id="pagefind-status" class="status-pill">Loading manifest…</p>
       </section>
       <section class="card">
+        <div class="section-heading">
+          <h2>Query the catalogue</h2>
+          <p class="result-meta">Browser-based search · no server required</p>
+        </div>
         <div id="search-interface" class="search-shell"></div>
+        <div class="search-tips" aria-label="Search tips">
+          <strong>Search tips</strong>
+          <p>Combine tokens to narrow your search. Try a document identifier such as <code>C09000008</code>, a four-digit year such as <code>1994</code>, a release-status fragment, or a phrase from a title like <code>NATO</code> or <code>Talbott</code>.</p>
+        </div>
       </section>
       <section class="card">
-        <h2>How it works</h2>
-        <p>The page loads the published manifest (<a class="inline-link" href="./assets/search/manifest.json">manifest.json</a> with a CSV fallback to <a class="inline-link" href="./data/manifest.csv">manifest.csv</a>) and matches every query token against each record's document ID, date, title, and PDF URL. Search runs entirely in the browser — no server required.</p>
+        <div class="section-heading">
+          <h2>About this search</h2>
+          <p class="result-meta">Static index · client-side ranking</p>
+        </div>
+        <p>The page loads the published manifest (<a class="inline-link" href="./assets/search/manifest.json">manifest.json</a>, with a CSV fallback to <a class="inline-link" href="./data/manifest.csv">manifest.csv</a>) and matches every query token against each record's document ID, date, title, and PDF URL. Ranking weights identifier matches above titles, dates, and URLs. The full index is shipped with the site and runs entirely in the browser.</p>
+        <hr class="gold-rule">
+        <p class="result-meta">For bulk analysis, download <a class="inline-link" href="./data/manifest.csv" download>manifest.csv</a>. For full-text discovery across extracted document text, see the <a class="inline-link" href="./semantic.html">semantic search</a> prototype.</p>
       </section>
     </main>
     <footer class="site-footer">
       <div class="layout">
-        <p>This MVP uses synthetic sample records for workflow testing. It does not publish the full PDF corpus.</p>
+        <p class="disclaimer">Unofficial research tool. Not affiliated with the U.S. Department of State.</p>
+        <p>Document metadata is harvested from the State Department FOIA Library for case F-2017-13804. PDFs are linked at their original source on <code>foia.state.gov</code> and are not redistributed by this site.</p>
       </div>
     </footer>
     <script src="./assets/js/site.js" defer></script>

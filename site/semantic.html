@@ -10,28 +10,28 @@
   <body class="page-semantic">
     <header class="masthead">
       <div class="layout">
-        <p class="eyebrow">Strobe Talbott FOIA MVP</p>
+        <p class="eyebrow">Research Portal · FOIA Case F-2017-13804</p>
         <div class="masthead-row">
           <div class="title-lockup">
             <h1>Strobe Talbott FOIA Case F-2017-13804</h1>
-            <p class="masthead-note">Sample-first static publication workflow for FRUS compilers and Clinton administration researchers.</p>
+            <p class="masthead-note">A research portal for FRUS compilers and historians of Clinton-era diplomacy. Document metadata harvested from the State Department FOIA Library; PDFs hosted at the source.</p>
           </div>
           <nav class="site-nav" aria-label="Primary">
             <a href="./index.html">Collection</a>
             <a href="./manifest.html">Manifest</a>
             <a href="./search.html">Keyword Search</a>
-            <a href="./semantic.html" aria-current="page">Semantic Prototype</a>
+            <a href="./semantic.html" aria-current="page">Semantic Search</a>
           </nav>
         </div>
       </div>
     </header>
     <main class="layout">
       <section class="card hero-card">
-        <p class="eyebrow">AI-enhanced / semantic search prototype</p>
-        <h2>Top matching chunks from precomputed sample text</h2>
-        <p class="lede">This MVP does not use real embeddings yet. It loads chunk data generated at build time and ranks candidate passages by keyword overlap while preserving a clean upgrade path to vectors later.</p>
+        <p class="eyebrow">Semantic Search</p>
+        <h2>Top matching passages from extracted document text</h2>
+        <p class="lede">Semantic search ranks candidate passages from the precomputed chunk index. The current build uses keyword-overlap scoring and is structured so vector embeddings can be substituted without changes to the page interface.</p>
         <div class="notice">
-          <strong>Prototype notice.</strong> The ranking below is an intentionally lightweight approximation for interface and workflow testing.
+          The ranking below is a lightweight approximation suitable for browse-and-discover research; cite the source PDF rather than the snippet.
         </div>
       </section>
       <section class="card">
@@ -62,7 +62,8 @@
     </main>
     <footer class="site-footer">
       <div class="layout">
-        <p>This MVP uses synthetic sample records for workflow testing. It does not publish the full PDF corpus.</p>
+        <p class="disclaimer">Unofficial research tool. Not affiliated with the U.S. Department of State.</p>
+        <p>Document metadata is harvested from the State Department FOIA Library for case F-2017-13804. PDFs are linked at their original source on <code>foia.state.gov</code> and are not redistributed by this site.</p>
       </div>
     </footer>
     <script src="./assets/js/site.js" defer></script>
