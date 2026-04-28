@@ -1,26 +1,32 @@
-"""Generate neutral 2-3 sentence descriptions for each manifest record.
+"""Generate neutral 2-3 sentence descriptions for each manifest row.
 
-For every row in `data/manifest.csv` we try to download the source PDF,
-extract its first few pages of text with `pdftotext`, and synthesize a
-short, neutral description grounded in that text. If the PDF cannot be
-retrieved or yields no usable text (scanned image, blocked, etc.), we
-fall back to a metadata-only description built from title and date.
+Every row in `data/manifest.csv` is keyed by its full `pdf_url` (the only
+globally unique locator — `document_id` repeats across FOIA release
+folders). We try to download the source PDF, extract its first few pages
+of text with `pdftotext`, and synthesize a short, neutral description
+grounded in that text. If the PDF cannot be retrieved or yields no
+usable text (scanned image, blocked, etc.), we emit a metadata-only
+description that incorporates the release-folder context so the same
+underlying C-number rendered in different releases reads distinctly.
 
-The pipeline is resumable: per-document JSON results are cached under
-`data/descriptions/cache/<id>.json` and PDFs are cached under
-`data/descriptions/pdfs/<id>.pdf` so reruns skip completed work.
+The pipeline is resumable: per-row JSON results are cached under
+`data/descriptions/cache/<pdf_url_hash>.json` and PDFs under
+`data/descriptions/pdfs/<pdf_url_hash>.pdf` so reruns skip completed
+work.
 
 Outputs:
-  - `data/descriptions/<id>.json` per-record cache entries (source +
-    description + extracted_chars).
-  - `data/manifest_enriched.csv` with the original columns plus a new
-    `description` column and a `description_source` column.
-  - `data/manifest_descriptions.json` — `{document_id: description}`
-    map consumed by the static-site build.
+  - `data/descriptions/cache/<pdf_url_hash>.json` per-row cache entries
+    (description + source + extracted_chars + pdf_url + document_id).
+  - `data/manifest_enriched.csv` with the original columns plus
+    `description` and `description_source` columns. One row per source
+    manifest row (1,474 rows).
+  - `data/manifest_descriptions.json` — `{pdf_url: {description, source,
+    document_id, release_folder}}` map consumed by the static-site
+    build and search assets.
 
 Usage:
   python3 scripts/enrich_manifest.py [--limit N] [--workers N]
-                                     [--no-network]
+                                     [--no-network] [--metadata-only]
                                      [--input data/manifest.csv]
                                      [--output-dir data/descriptions]
 
@@ -31,8 +37,8 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
-import os
 import re
 import shutil
 import subprocess
@@ -54,10 +60,12 @@ DEFAULT_DESCRIPTIONS_JSON = PROJECT_ROOT / "data" / "manifest_descriptions.json"
 USER_AGENT = (
     "strobe-talbott-foia-research-bot/1.0 (+https://github.com/therealjameswilson/strobe-talbott-foia)"
 )
-REQUEST_TIMEOUT = 60
+REQUEST_TIMEOUT = 45
 PDF_PAGES_TO_EXTRACT = 4
 MIN_TEXT_LENGTH = 80
-MAX_DESCRIPTION_CHARS = 600
+MAX_DESCRIPTION_CHARS = 720
+
+RELEASE_FOLDER_RE = re.compile(r"/FOIA_L_([A-Za-z0-9]+)/", re.IGNORECASE)
 
 
 @dataclass
@@ -70,10 +78,12 @@ class ManifestRow:
 
 @dataclass
 class EnrichResult:
+    pdf_url: str
     document_id: str
     description: str
     source: str  # "pdf" | "metadata"
     extracted_chars: int
+    release_folder: str
 
 
 _print_lock = threading.Lock()
@@ -100,20 +110,41 @@ def read_manifest(path: Path) -> list[ManifestRow]:
     return rows
 
 
-def safe_filename(name: str) -> str:
-    return re.sub(r"[^A-Za-z0-9._-]", "_", name)[:120]
+def url_hash(pdf_url: str) -> str:
+    """Stable, filesystem-safe hash for a pdf_url."""
+    digest = hashlib.sha1(pdf_url.encode("utf-8")).hexdigest()[:20]
+    return digest
 
 
-def cache_paths(output_dir: Path, document_id: str) -> tuple[Path, Path]:
+def release_folder_from_url(pdf_url: str) -> str:
+    match = RELEASE_FOLDER_RE.search(pdf_url)
+    if not match:
+        return ""
+    return f"FOIA_L_{match.group(1)}"
+
+
+def humanize_release_folder(folder: str) -> str:
+    """Turn FOIA_L_June2024 into 'the June 2024 FOIA Library release'."""
+    if not folder:
+        return ""
+    body = folder.replace("FOIA_L_", "")
+    match = re.match(r"^([A-Za-z]+)(\d{4})$", body)
+    if match:
+        month, year = match.group(1), match.group(2)
+        return f"the {month} {year} FOIA Library release"
+    return f"FOIA Library release {body}"
+
+
+def cache_paths(output_dir: Path, pdf_url: str) -> tuple[Path, Path]:
     cache_dir = output_dir / "cache"
     pdf_dir = output_dir / "pdfs"
     cache_dir.mkdir(parents=True, exist_ok=True)
     pdf_dir.mkdir(parents=True, exist_ok=True)
-    safe = safe_filename(document_id) or "doc"
-    return cache_dir / f"{safe}.json", pdf_dir / f"{safe}.pdf"
+    h = url_hash(pdf_url)
+    return cache_dir / f"{h}.json", pdf_dir / f"{h}.pdf"
 
 
-def download_pdf(url: str, dest: Path, *, retries: int = 3) -> bool:
+def download_pdf(url: str, dest: Path, *, retries: int = 2) -> bool:
     if dest.exists() and dest.stat().st_size > 0:
         return True
     last_err: Exception | None = None
@@ -128,7 +159,7 @@ def download_pdf(url: str, dest: Path, *, retries: int = 3) -> bool:
             return True
         except (HTTPError, URLError, TimeoutError, ConnectionError, OSError) as exc:
             last_err = exc
-            time.sleep(1.0 + attempt * 1.5)
+            time.sleep(0.5 + attempt * 1.0)
     if last_err is not None:
         log(f"  ! download failed for {url}: {last_err}")
     return False
@@ -150,7 +181,7 @@ def extract_pdf_text(pdf_path: Path) -> str:
                 "-",
             ],
             capture_output=True,
-            timeout=60,
+            timeout=45,
             check=False,
         )
         if completed.returncode == 0:
@@ -161,7 +192,7 @@ def extract_pdf_text(pdf_path: Path) -> str:
 
 
 def normalize_text(text: str) -> str:
-    text = text.replace(" ", " ")
+    text = text.replace(" ", " ")
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r"\n{2,}", "\n\n", text)
     return text.strip()
@@ -224,14 +255,12 @@ def synthesize_description_from_text(
         if len(chosen) >= 2:
             break
 
-    title_clause = build_title_clause(row)
     if not chosen:
         return "", chars
 
+    title_clause = build_title_clause(row)
     excerpt = " ".join(chosen)
-    description = (
-        f"{title_clause} The released text begins: \"{excerpt}\""
-    )
+    description = f"{title_clause} The released text begins: \"{excerpt}\""
     if len(description) > MAX_DESCRIPTION_CHARS:
         description = description[: MAX_DESCRIPTION_CHARS - 1].rstrip() + "…"
     return description, chars
@@ -241,23 +270,45 @@ def build_title_clause(row: ManifestRow) -> str:
     title = (row.title or "").strip()
     date = (row.date or "").strip()
     doc_id = (row.document_id or "").strip()
+    release_label = humanize_release_folder(release_folder_from_url(row.pdf_url))
+    release_suffix = f", released in {release_label}" if release_label else ""
     if title and date:
-        head = f"State Department FOIA record {doc_id}, dated {date}, is titled \"{title}\"."
+        head = (
+            f"State Department FOIA record {doc_id}, dated {date}{release_suffix}, "
+            f"is titled \"{title}\"."
+        )
     elif title:
-        head = f"State Department FOIA record {doc_id} is titled \"{title}\"."
+        head = (
+            f"State Department FOIA record {doc_id}{release_suffix} "
+            f"is titled \"{title}\"."
+        )
     elif date:
-        head = f"State Department FOIA record {doc_id} is dated {date}."
+        head = (
+            f"State Department FOIA record {doc_id} is dated {date}{release_suffix}."
+        )
     else:
-        head = f"State Department FOIA record {doc_id} from case F-2017-13804."
+        head = (
+            f"State Department FOIA record {doc_id} from case F-2017-13804"
+            f"{release_suffix}."
+        )
     return head
 
 
 def metadata_only_description(row: ManifestRow) -> str:
     head = build_title_clause(row)
-    tail = (
-        "Released under FOIA case F-2017-13804 in the Strobe Talbott collection. "
-        "Searchable text was not extracted; consult the source PDF for full content."
-    )
+    release_label = humanize_release_folder(release_folder_from_url(row.pdf_url))
+    if release_label:
+        tail = (
+            f"Issued under FOIA case F-2017-13804 as part of {release_label} "
+            "in the Strobe Talbott collection. Searchable text was not extracted "
+            "for this rendering; consult the source PDF for full content."
+        )
+    else:
+        tail = (
+            "Released under FOIA case F-2017-13804 in the Strobe Talbott collection. "
+            "Searchable text was not extracted for this rendering; consult the source "
+            "PDF for full content."
+        )
     return f"{head} {tail}"
 
 
@@ -267,16 +318,39 @@ def enrich_row(
     *,
     use_network: bool,
 ) -> EnrichResult:
-    cache_file, pdf_file = cache_paths(output_dir, row.document_id)
+    if not row.pdf_url:
+        return EnrichResult(
+            pdf_url="",
+            document_id=row.document_id,
+            description=metadata_only_description(row),
+            source="metadata",
+            extracted_chars=0,
+            release_folder="",
+        )
+
+    cache_file, pdf_file = cache_paths(output_dir, row.pdf_url)
+    release_folder = release_folder_from_url(row.pdf_url)
+
     if cache_file.exists():
         try:
             cached = json.loads(cache_file.read_text(encoding="utf-8"))
-            return EnrichResult(
-                document_id=row.document_id,
-                description=cached.get("description", ""),
-                source=cached.get("source", "metadata"),
-                extracted_chars=int(cached.get("extracted_chars", 0)),
-            )
+            cached_url = cached.get("pdf_url", "")
+            cached_source = cached.get("source", "metadata")
+            cached_desc = cached.get("description", "")
+            if cached_url == row.pdf_url and cached_desc:
+                # Reuse pdf-grounded descriptions unconditionally.
+                # Reuse metadata-only descriptions only when we cannot
+                # retry over the network — otherwise fall through and
+                # try to upgrade.
+                if cached_source == "pdf" or not use_network:
+                    return EnrichResult(
+                        pdf_url=row.pdf_url,
+                        document_id=row.document_id,
+                        description=cached_desc,
+                        source=cached_source,
+                        extracted_chars=int(cached.get("extracted_chars", 0)),
+                        release_folder=cached.get("release_folder", release_folder),
+                    )
         except (json.JSONDecodeError, OSError):
             pass
 
@@ -284,7 +358,7 @@ def enrich_row(
     source = "metadata"
     extracted_chars = 0
 
-    if use_network and row.pdf_url:
+    if use_network:
         if download_pdf(row.pdf_url, pdf_file):
             text = extract_pdf_text(pdf_file)
             description, extracted_chars = synthesize_description_from_text(row, text)
@@ -296,21 +370,24 @@ def enrich_row(
         source = "metadata"
 
     payload = {
+        "pdf_url": row.pdf_url,
         "document_id": row.document_id,
         "description": description,
         "source": source,
         "extracted_chars": extracted_chars,
         "title": row.title,
         "date": row.date,
-        "pdf_url": row.pdf_url,
+        "release_folder": release_folder,
     }
     cache_file.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
 
     return EnrichResult(
+        pdf_url=row.pdf_url,
         document_id=row.document_id,
         description=description,
         source=source,
         extracted_chars=extracted_chars,
+        release_folder=release_folder,
     )
 
 
@@ -325,34 +402,70 @@ def write_outputs(
 
     with enriched_csv.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
-        writer.writerow(["document_id", "date", "title", "pdf_url", "description", "description_source"])
+        writer.writerow(
+            [
+                "document_id",
+                "date",
+                "title",
+                "pdf_url",
+                "description",
+                "description_source",
+            ]
+        )
         for row in rows:
-            r = results.get(row.document_id)
+            r = results.get(row.pdf_url)
             description = r.description if r else metadata_only_description(row)
             source = r.source if r else "metadata"
-            writer.writerow([row.document_id, row.date, row.title, row.pdf_url, description, source])
+            writer.writerow(
+                [row.document_id, row.date, row.title, row.pdf_url, description, source]
+            )
 
-    payload = {
-        row.document_id: {
-            "description": (results[row.document_id].description if row.document_id in results else metadata_only_description(row)),
-            "source": (results[row.document_id].source if row.document_id in results else "metadata"),
-        }
-        for row in rows
-        if row.document_id
-    }
-    descriptions_json.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    payload: dict[str, dict[str, str]] = {}
+    for row in rows:
+        if not row.pdf_url:
+            continue
+        r = results.get(row.pdf_url)
+        if r is None:
+            payload[row.pdf_url] = {
+                "description": metadata_only_description(row),
+                "source": "metadata",
+                "document_id": row.document_id,
+                "release_folder": release_folder_from_url(row.pdf_url),
+            }
+        else:
+            payload[row.pdf_url] = {
+                "description": r.description,
+                "source": r.source,
+                "document_id": r.document_id,
+                "release_folder": r.release_folder,
+            }
+    descriptions_json.write_text(
+        json.dumps(payload, ensure_ascii=False), encoding="utf-8"
+    )
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Enrich manifest with PDF-grounded descriptions.")
+    parser = argparse.ArgumentParser(
+        description="Enrich manifest with PDF-grounded descriptions, keyed by pdf_url."
+    )
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT, help="Source manifest CSV.")
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR, help="Where caches live.")
     parser.add_argument("--enriched-csv", type=Path, default=DEFAULT_ENRICHED_CSV)
     parser.add_argument("--descriptions-json", type=Path, default=DEFAULT_DESCRIPTIONS_JSON)
     parser.add_argument("--limit", type=int, default=0, help="Process only the first N rows (0 = all).")
     parser.add_argument("--workers", type=int, default=8, help="Parallel network workers.")
-    parser.add_argument("--no-network", action="store_true", help="Skip downloads; metadata-only descriptions.")
-    parser.add_argument("--rebuild-outputs-only", action="store_true", help="Only rebuild CSV and JSON from cache.")
+    parser.add_argument(
+        "--no-network",
+        "--metadata-only",
+        action="store_true",
+        dest="no_network",
+        help="Skip downloads; emit metadata-only descriptions for every row.",
+    )
+    parser.add_argument(
+        "--rebuild-outputs-only",
+        action="store_true",
+        help="Only rebuild CSV and JSON from cache (and metadata fallback for missing rows).",
+    )
     return parser.parse_args()
 
 
@@ -369,25 +482,33 @@ def main() -> int:
 
     if args.rebuild_outputs_only:
         for row in rows:
-            cache_file, _ = cache_paths(args.output_dir, row.document_id)
+            if not row.pdf_url:
+                continue
+            cache_file, _ = cache_paths(args.output_dir, row.pdf_url)
+            release_folder = release_folder_from_url(row.pdf_url)
             if cache_file.exists():
                 try:
                     cached = json.loads(cache_file.read_text(encoding="utf-8"))
-                    results[row.document_id] = EnrichResult(
-                        document_id=row.document_id,
-                        description=cached.get("description", ""),
-                        source=cached.get("source", "metadata"),
-                        extracted_chars=int(cached.get("extracted_chars", 0)),
-                    )
+                    if cached.get("pdf_url") == row.pdf_url and cached.get("description"):
+                        results[row.pdf_url] = EnrichResult(
+                            pdf_url=row.pdf_url,
+                            document_id=row.document_id,
+                            description=cached["description"],
+                            source=cached.get("source", "metadata"),
+                            extracted_chars=int(cached.get("extracted_chars", 0)),
+                            release_folder=cached.get("release_folder", release_folder),
+                        )
+                        continue
                 except (json.JSONDecodeError, OSError):
                     pass
-            if row.document_id not in results:
-                results[row.document_id] = EnrichResult(
-                    document_id=row.document_id,
-                    description=metadata_only_description(row),
-                    source="metadata",
-                    extracted_chars=0,
-                )
+            results[row.pdf_url] = EnrichResult(
+                pdf_url=row.pdf_url,
+                document_id=row.document_id,
+                description=metadata_only_description(row),
+                source="metadata",
+                extracted_chars=0,
+                release_folder=release_folder,
+            )
     else:
         use_network = not args.no_network
         workers = max(1, args.workers)
@@ -400,28 +521,30 @@ def main() -> int:
             return enrich_row(row, args.output_dir, use_network=use_network)
 
         with ThreadPoolExecutor(max_workers=workers) as pool:
-            futures = {pool.submit(task, row): row for row in rows if row.document_id}
+            futures = {pool.submit(task, row): row for row in rows if row.pdf_url}
             total = len(futures)
             for fut in as_completed(futures):
                 row = futures[fut]
                 try:
                     result = fut.result()
                 except Exception as exc:  # noqa: BLE001
-                    log(f"  ! row {row.document_id} failed: {exc}")
+                    log(f"  ! row {row.pdf_url} failed: {exc}")
                     result = EnrichResult(
+                        pdf_url=row.pdf_url,
                         document_id=row.document_id,
                         description=metadata_only_description(row),
                         source="metadata",
                         extracted_chars=0,
+                        release_folder=release_folder_from_url(row.pdf_url),
                     )
-                results[row.document_id] = result
+                results[row.pdf_url] = result
                 with progress_lock:
                     progress["done"] += 1
                     if result.source == "pdf":
                         progress["pdf"] += 1
                     else:
                         progress["metadata"] += 1
-                    if progress["done"] % 25 == 0 or progress["done"] == total:
+                    if progress["done"] % 50 == 0 or progress["done"] == total:
                         elapsed = time.time() - t0
                         rate = progress["done"] / elapsed if elapsed else 0
                         log(
@@ -435,7 +558,8 @@ def main() -> int:
     pdf_count = sum(1 for r in results.values() if r.source == "pdf")
     meta_count = sum(1 for r in results.values() if r.source == "metadata")
     log(
-        f"Done. {pdf_count} PDF-grounded descriptions, {meta_count} metadata-only. "
+        f"Done. {pdf_count} PDF-grounded descriptions, {meta_count} metadata-only "
+        f"across {len(results)} unique pdf_url entries. "
         f"Wrote {args.enriched_csv} and {args.descriptions_json}."
     )
     return 0

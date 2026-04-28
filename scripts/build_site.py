@@ -509,17 +509,18 @@ def load_csv_manifest(
         reader = csv.DictReader(handle)
         for row in reader:
             doc_id = (row.get("document_id") or "").strip()
+            pdf_url = (row.get("pdf_url") or "").strip()
             entry_description = (row.get("description") or "").strip()
             entry_source = (row.get("description_source") or "").strip()
-            if not entry_description and doc_id in descriptions:
-                entry_description = descriptions[doc_id].get("description", "")
-                entry_source = descriptions[doc_id].get("source", entry_source)
+            if not entry_description and pdf_url in descriptions:
+                entry_description = descriptions[pdf_url].get("description", "")
+                entry_source = descriptions[pdf_url].get("source", entry_source)
             entries.append(
                 ManifestEntry(
                     document_id=doc_id,
                     date=(row.get("date") or "").strip(),
                     title=(row.get("title") or "").strip(),
-                    pdf_url=(row.get("pdf_url") or "").strip(),
+                    pdf_url=pdf_url,
                     description=entry_description,
                     description_source=entry_source,
                 )
@@ -528,6 +529,12 @@ def load_csv_manifest(
 
 
 def load_descriptions(path: Path) -> dict[str, dict[str, str]]:
+    """Load the pdf_url-keyed descriptions JSON.
+
+    The map is keyed by full `pdf_url` so duplicate `document_id` values
+    across different FOIA release folders each retain their own
+    PDF-grounded (or metadata-fallback) description.
+    """
     if not path.exists():
         return {}
     try:
@@ -579,7 +586,7 @@ def render_manifest_page(entries: list[ManifestEntry], site_title: str) -> str:
       <section class="card">
         <div class="section-heading">
           <h2>All documents</h2>
-          <p>Manifest entries: <strong>{len(rows)}</strong>. Source: <a class="inline-link" href="./data/manifest.csv">data/manifest.csv</a> (with neutral 2-3 sentence descriptions joined from <a class="inline-link" href="./data/manifest_enriched.csv">manifest_enriched.csv</a>).</p>
+          <p>Manifest entries: <strong>{len(rows)}</strong>. Source: <a class="inline-link" href="./data/manifest.csv">data/manifest.csv</a> (with neutral 2-3 sentence descriptions, one per <code>pdf_url</code>, joined from <a class="inline-link" href="./data/manifest_enriched.csv">manifest_enriched.csv</a>).</p>
         </div>
         <form class="search-form" role="search" onsubmit="return false;">
           <label for="manifest-filter">Filter by ID, date, title, or description</label>
