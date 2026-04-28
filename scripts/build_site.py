@@ -340,16 +340,16 @@ def render_index_page(
 def render_search_page(site_title: str) -> str:
     body = """      <section class="card hero-card">
         <p class="eyebrow">Keyword Search</p>
-        <h2>Static full-text search with Pagefind</h2>
-        <p class="lede">The keyword search experience is fully client-side. After the generated HTML is indexed, researchers can search document titles, visible metadata, and extracted text without a backend.</p>
-        <p id="pagefind-status" class="status-pill">Looking for Pagefind assets...</p>
+        <h2>Search the FOIA manifest for case F-2017-13804</h2>
+        <p class="lede">Search every catalogued document in <code>data/manifest.csv</code> by document ID, date, title, or source PDF URL. Results link directly to the original State Department PDF.</p>
+        <p id="pagefind-status" class="status-pill">Loading manifest…</p>
       </section>
       <section class="card">
         <div id="search-interface" class="search-shell"></div>
       </section>
       <section class="card">
         <h2>How it works</h2>
-        <p>Each generated document page includes document ID, date, release status, source URL, and extracted text. Pagefind indexes the `site/` directory after `npm run build:search` runs.</p>
+        <p>The page loads the published manifest (<a class="inline-link" href="./assets/search/manifest.json">manifest.json</a> with a CSV fallback to <a class="inline-link" href="./data/manifest.csv">manifest.csv</a>) and matches every query token against each record's document ID, date, title, and PDF URL. Search runs entirely in the browser — no server required.</p>
       </section>"""
 
     return render_layout(
@@ -358,7 +358,7 @@ def render_search_page(site_title: str) -> str:
         root_prefix=".",
         body_class="page-search",
         body=body,
-        page_description="Keyword search across the sample FOIA document collection.",
+        page_description="Keyword search across the FOIA document manifest for case F-2017-13804.",
         current_page="search",
         script_paths=["./assets/js/site.js", "./assets/js/search.js"],
     )
@@ -580,6 +580,36 @@ def copy_csv_manifest(csv_path: Path, out_dir: Path) -> Path | None:
     return target
 
 
+def write_search_manifest(
+    entries: list[ManifestEntry],
+    out_dir: Path,
+    document_page_ids: list[str],
+) -> None:
+    target_dir = out_dir / "assets" / "search"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "case_number": EXPECTED_CASE_NUMBER,
+        "record_count": sum(1 for entry in entries if entry.document_id or entry.pdf_url),
+        "records": [
+            {
+                "document_id": entry.document_id,
+                "date": entry.date,
+                "title": entry.title,
+                "pdf_url": entry.pdf_url,
+            }
+            for entry in entries
+            if entry.document_id or entry.pdf_url
+        ],
+    }
+    (target_dir / "manifest.json").write_text(
+        json.dumps(payload, ensure_ascii=False), encoding="utf-8"
+    )
+    (target_dir / "doc_pages.json").write_text(
+        json.dumps(sorted(set(document_page_ids)), ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+
 def build_site(manifest_path: Path, out_dir: Path, site_title: str) -> list[DocumentRecord]:
     manifest_path = manifest_path.resolve()
     out_dir = out_dir.resolve()
@@ -619,6 +649,12 @@ def build_site(manifest_path: Path, out_dir: Path, site_title: str) -> list[Docu
             docs_dir / f"{record.id}.html",
             render_document_page(record, text, site_title, snippet),
         )
+
+    write_search_manifest(
+        csv_entries,
+        out_dir,
+        document_page_ids=[record.id for record in records],
+    )
 
     return records
 

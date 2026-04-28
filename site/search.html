@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Keyword Search | Strobe Talbott FOIA Case F-2017-13804</title>
-    <meta name="description" content="Keyword search across the sample FOIA document collection.">
+    <meta name="description" content="Keyword search across the FOIA document manifest for case F-2017-13804.">
     <link rel="stylesheet" href="./assets/css/style.css">
   </head>
   <body class="page-search">
@@ -28,16 +28,16 @@
     <main class="layout">
       <section class="card hero-card">
         <p class="eyebrow">Keyword Search</p>
-        <h2>Static full-text search with Pagefind</h2>
-        <p class="lede">The keyword search experience is fully client-side. After the generated HTML is indexed, researchers can search document titles, visible metadata, and extracted text without a backend.</p>
-        <p id="pagefind-status" class="status-pill">Looking for Pagefind assets...</p>
+        <h2>Search the FOIA manifest for case F-2017-13804</h2>
+        <p class="lede">Search every catalogued document in <code>data/manifest.csv</code> by document ID, date, title, or source PDF URL. Results link directly to the original State Department PDF.</p>
+        <p id="pagefind-status" class="status-pill">Loading manifest…</p>
       </section>
       <section class="card">
         <div id="search-interface" class="search-shell"></div>
       </section>
       <section class="card">
         <h2>How it works</h2>
-        <p>Each generated document page includes document ID, date, release status, source URL, and extracted text. Pagefind indexes the `site/` directory after `npm run build:search` runs.</p>
+        <p>The page loads the published manifest (<a class="inline-link" href="./assets/search/manifest.json">manifest.json</a> with a CSV fallback to <a class="inline-link" href="./data/manifest.csv">manifest.csv</a>) and matches every query token against each record's document ID, date, title, and PDF URL. Search runs entirely in the browser — no server required.</p>
       </section>
     </main>
     <footer class="site-footer">
