@@ -223,8 +223,7 @@ def render_layout(
             <p class="masthead-note">A research portal for FRUS compilers and historians of Clinton-era diplomacy. Document metadata harvested from the State Department FOIA Library; PDFs hosted at the source.</p>
           </div>
           <nav class="site-nav" aria-label="Primary">
-            {nav_link("Collection", home_url, current_page == "collection")}
-            {nav_link("Manifest", manifest_url, current_page == "manifest")}
+            {nav_link("Manifest", manifest_url, current_page == "manifest" or current_page == "collection")}
             {nav_link("Keyword Search", search_url, current_page == "search")}
             {nav_link("Semantic Search", semantic_url, current_page == "semantic")}
           </nav>
@@ -251,94 +250,23 @@ def render_index_page(
     site_title: str,
     csv_entries: list[ManifestEntry] | None = None,
 ) -> str:
-    rows = []
-    for record in records:
-        snippet = build_snippet(text_by_id.get(record.id, ""), limit=140)
-        rows.append(
-            f"""          <tr>
-            <td><a class="table-link" href="./docs/{html.escape(record.id)}.html">{html.escape(record.id)}</a></td>
-            <td>{html.escape(record.date)}</td>
-            <td>
-              <strong>{html.escape(record.title)}</strong>
-              <p class="table-snippet">{html.escape(snippet or "Metadata only · extracted text not yet ingested.")}</p>
-            </td>
-            <td>{html.escape(record.release_status)}</td>
-            <td><a class="inline-link" href="{html.escape(record.source_pdf_url)}">Source PDF</a></td>
-            <td><a class="inline-link" href="./docs/{html.escape(record.id)}.html">Document page</a></td>
-          </tr>"""
-        )
-
-    csv_count = len(csv_entries) if csv_entries else 0
-    manifest_callout = ""
-    if csv_count:
-        manifest_callout = f"""
-      <section class="card">
-        <p class="eyebrow">Full FOIA manifest</p>
-        <h2>{csv_count:,} catalogued documents</h2>
-        <p>The complete document manifest harvested from the State Department FOIA Library for case {EXPECTED_CASE_NUMBER} is published on this site. Each row links directly to the original PDF on <code>foia.state.gov</code>.</p>
-        <div class="action-row">
-          <a class="button-link" href="./manifest.html">Browse the full manifest</a>
-          <a class="button-link button-link-secondary" href="./data/manifest.csv" download>Download manifest.csv</a>
-        </div>
-      </section>"""
-
-    body = f"""      <section class="card hero-card">
-        <p class="eyebrow">Strobe Talbott · Clinton Administration</p>
-        <h2>Document register for FOIA case {EXPECTED_CASE_NUMBER}</h2>
-        <p class="lede">A research portal that organizes State Department FOIA metadata, extracted text, keyword search, and a semantic discovery layer for FRUS compilers and historians of late-twentieth-century U.S. diplomacy.</p>
-        <p>Document pages cite the original FOIA release. PDFs remain hosted at <code>foia.state.gov</code> and are not redistributed by this site.</p>
-        <div class="action-row">
-          <a class="button-link" href="./manifest.html">Browse FOIA manifest</a>
-          <a class="button-link button-link-secondary" href="./search.html">Keyword search</a>
-          <a class="button-link button-link-secondary" href="./semantic.html">Semantic search</a>
-        </div>
-      </section>{manifest_callout}
-      <section class="summary-grid">
-        <article class="card stat-card">
-          <p class="eyebrow">Annotated record</p>
-          <h2>{len(records)}</h2>
-          <p class="stat-copy">documents with full per-page metadata, extracted text, and citation block</p>
-        </article>
-        <article class="card">
-          <p class="eyebrow">Editorial method</p>
-          <h2>Search-ready static pages</h2>
-          <p>Each document page carries bibliographic metadata, visible extracted text, and a direct source URL, so keyword search and future semantic tools can surface useful results without a backend.</p>
-        </article>
-      </section>
-      <section class="card">
-        <div class="section-heading">
-          <h2>Document register</h2>
-          <p>{len(records)} annotated records</p>
-        </div>
-        <div class="table-wrap">
-          <table class="document-table">
-            <thead>
-              <tr>
-                <th scope="col">Document ID</th>
-                <th scope="col">Date</th>
-                <th scope="col">Title</th>
-                <th scope="col">Release Status</th>
-                <th scope="col">Source</th>
-                <th scope="col">Page</th>
-              </tr>
-            </thead>
-            <tbody>
-{chr(10).join(rows)}
-            </tbody>
-          </table>
-        </div>
-      </section>"""
-
-    return render_layout(
-        page_title=site_title,
-        site_title=site_title,
-        root_prefix=".",
-        body_class="page-home",
-        body=body,
-        page_description="Sample document collection for Strobe Talbott FOIA case F-2017-13804.",
-        current_page="collection",
-        script_paths=["./assets/js/site.js"],
-    )
+    del records, text_by_id, csv_entries
+    return f"""<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{html.escape(site_title)}</title>
+    <meta name="description" content="Document manifest for Strobe Talbott FOIA case {EXPECTED_CASE_NUMBER}.">
+    <meta http-equiv="refresh" content="0; url=./manifest.html">
+    <link rel="canonical" href="./manifest.html">
+    <meta name="robots" content="noindex">
+  </head>
+  <body>
+    <p>Redirecting to the <a href="./manifest.html">FOIA manifest</a>.</p>
+    <script>window.location.replace("./manifest.html");</script>
+  </body>
+</html>
+"""
 
 
 def render_search_page(site_title: str) -> str:
@@ -580,7 +508,7 @@ def render_manifest_page(entries: list[ManifestEntry], site_title: str) -> str:
         <p class="lede">Every record catalogued in <code>data/manifest.csv</code>. Each row links directly to the original PDF on the State Department FOIA Library. Use the filter box to narrow by document identifier, date, or title fragment.</p>
         <div class="action-row">
           <a class="button-link" href="./data/manifest.csv" download>Download manifest.csv</a>
-          <a class="button-link button-link-secondary" href="./index.html">Back to collection overview</a>
+          <a class="button-link button-link-secondary" href="./search.html">Keyword search</a>
         </div>
       </section>
       <section class="card">

@@ -11,10 +11,11 @@ def test_build_site_creates_index_page(tmp_path: Path) -> None:
     index_page = tmp_path / "index.html"
     assert index_page.exists()
     page_text = index_page.read_text(encoding="utf-8")
-    assert "Document register for FOIA case F-2017-13804" in page_text
-    assert "5 annotated records" in page_text
-    assert '<table class="document-table">' in page_text
-    assert "./docs/C00000001.html" in page_text
+    assert 'http-equiv="refresh"' in page_text
+    assert "./manifest.html" in page_text
+    assert "Document register" not in page_text
+    assert "annotated records" not in page_text
+    assert (tmp_path / "manifest.html").exists()
     assert (tmp_path / "semantic.html").exists()
     assert (tmp_path / "assets" / "js" / "site.js").exists()
 
