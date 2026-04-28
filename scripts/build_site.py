@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import html
 import json
 import shutil
@@ -13,6 +14,15 @@ DEFAULT_OUT_DIR = PROJECT_ROOT / "site"
 DEFAULT_SITE_TITLE = "Strobe Talbott FOIA Case F-2017-13804"
 EXPECTED_CASE_NUMBER = "F-2017-13804"
 STATIC_ASSETS_DIR = PROJECT_ROOT / "site" / "assets"
+DEFAULT_CSV_MANIFEST = PROJECT_ROOT / "data" / "manifest.csv"
+
+
+@dataclass
+class ManifestEntry:
+    document_id: str
+    date: str
+    title: str
+    pdf_url: str
 
 
 @dataclass
@@ -184,6 +194,7 @@ def render_layout(
 ) -> str:
     stylesheet = relative_asset(root_prefix, "assets/css/style.css")
     home_url = relative_asset(root_prefix, "index.html")
+    manifest_url = relative_asset(root_prefix, "manifest.html")
     search_url = relative_asset(root_prefix, "search.html")
     semantic_url = relative_asset(root_prefix, "semantic.html")
     script_tags = ""
@@ -210,6 +221,7 @@ def render_layout(
           </div>
           <nav class="site-nav" aria-label="Primary">
             {nav_link("Collection", home_url, current_page == "collection")}
+            {nav_link("Manifest", manifest_url, current_page == "manifest")}
             {nav_link("Keyword Search", search_url, current_page == "search")}
             {nav_link("Semantic Prototype", semantic_url, current_page == "semantic")}
           </nav>
@@ -230,7 +242,10 @@ def render_layout(
 
 
 def render_index_page(
-    records: list[DocumentRecord], text_by_id: dict[str, str], site_title: str
+    records: list[DocumentRecord],
+    text_by_id: dict[str, str],
+    site_title: str,
+    csv_entries: list[ManifestEntry] | None = None,
 ) -> str:
     rows = []
     for record in records:
@@ -249,16 +264,31 @@ def render_index_page(
           </tr>"""
         )
 
+    csv_count = len(csv_entries) if csv_entries else 0
+    manifest_callout = ""
+    if csv_count:
+        manifest_callout = f"""
+      <section class="card">
+        <p class="eyebrow">Full FOIA manifest</p>
+        <h2>{csv_count} catalogued documents now available</h2>
+        <p>The full document manifest harvested from the State Department FOIA Library for case {EXPECTED_CASE_NUMBER} is published on this site. Each row links directly to the original PDF on <code>foia.state.gov</code>.</p>
+        <div class="action-row">
+          <a class="button-link" href="./manifest.html">Browse the full manifest</a>
+          <a class="button-link button-link-secondary" href="./data/manifest.csv" download>Download manifest.csv</a>
+        </div>
+      </section>"""
+
     body = f"""      <section class="card hero-card">
         <p class="eyebrow">Public history workflow</p>
         <h2>Sample document register for case {EXPECTED_CASE_NUMBER}</h2>
         <p class="lede">This sample site shows how a static GitHub Pages publication can organize FOIA metadata, extracted text, keyword search, and a future semantic discovery layer for FRUS compilers and historians.</p>
         <p>The current build uses placeholder records only. It is designed to prove the workflow before a real State Department FOIA manifest harvest is connected.</p>
         <div class="action-row">
-          <a class="button-link" href="./search.html">Keyword search</a>
+          <a class="button-link" href="./manifest.html">Browse FOIA manifest</a>
+          <a class="button-link button-link-secondary" href="./search.html">Keyword search</a>
           <a class="button-link button-link-secondary" href="./semantic.html">Semantic prototype</a>
         </div>
-      </section>
+      </section>{manifest_callout}
       <section class="summary-grid">
         <article class="card stat-card">
           <p class="eyebrow">Project Scope</p>
@@ -452,6 +482,104 @@ def render_document_page(
     )
 
 
+def load_csv_manifest(csv_path: Path) -> list[ManifestEntry]:
+    entries: list[ManifestEntry] = []
+    with csv_path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            entries.append(
+                ManifestEntry(
+                    document_id=(row.get("document_id") or "").strip(),
+                    date=(row.get("date") or "").strip(),
+                    title=(row.get("title") or "").strip(),
+                    pdf_url=(row.get("pdf_url") or "").strip(),
+                )
+            )
+    return entries
+
+
+def render_manifest_page(entries: list[ManifestEntry], site_title: str) -> str:
+    rows: list[str] = []
+    for entry in entries:
+        if not entry.document_id and not entry.pdf_url:
+            continue
+        rows.append(
+            f"""          <tr>
+            <td>{html.escape(entry.document_id)}</td>
+            <td>{html.escape(entry.date)}</td>
+            <td>{html.escape(entry.title)}</td>
+            <td><a class="inline-link" href="{html.escape(entry.pdf_url)}" rel="noopener" target="_blank">PDF</a></td>
+          </tr>"""
+        )
+
+    body = f"""      <section class="card hero-card">
+        <p class="eyebrow">FOIA case manifest</p>
+        <h2>Document manifest for case {EXPECTED_CASE_NUMBER}</h2>
+        <p class="lede">This page lists every record currently catalogued in <code>data/manifest.csv</code>. Each row links directly to the original PDF on the State Department FOIA Library. Use the filter box to narrow by document ID, date, or title keyword.</p>
+        <div class="action-row">
+          <a class="button-link" href="./data/manifest.csv" download>Download manifest.csv</a>
+          <a class="button-link button-link-secondary" href="./index.html">Back to collection overview</a>
+        </div>
+      </section>
+      <section class="card">
+        <div class="section-heading">
+          <h2>All documents</h2>
+          <p>Manifest entries: <strong>{len(rows)}</strong>. Source: <a class="inline-link" href="./data/manifest.csv">data/manifest.csv</a>.</p>
+        </div>
+        <form class="search-form" role="search" onsubmit="return false;">
+          <label for="manifest-filter">Filter by ID, date, or title</label>
+          <div class="search-form-row">
+            <input
+              id="manifest-filter"
+              name="filter"
+              type="search"
+              placeholder="e.g. Talbott, 1994, C09000008"
+              autocomplete="off"
+            >
+          </div>
+          <p id="manifest-count" class="status-pill">Showing {len(rows)} of {len(rows)} records</p>
+        </form>
+        <div class="table-wrap">
+          <table class="document-table" id="manifest-table">
+            <thead>
+              <tr>
+                <th scope="col">Document ID</th>
+                <th scope="col">Date</th>
+                <th scope="col">Title</th>
+                <th scope="col">PDF</th>
+              </tr>
+            </thead>
+            <tbody>
+{chr(10).join(rows)}
+            </tbody>
+          </table>
+        </div>
+      </section>"""
+
+    return render_layout(
+        page_title=f"Manifest | {site_title}",
+        site_title=site_title,
+        root_prefix=".",
+        body_class="page-manifest",
+        body=body,
+        page_description=(
+            f"Full document manifest for FOIA case {EXPECTED_CASE_NUMBER} with State Department PDF links."
+        ),
+        current_page="manifest",
+        script_paths=["./assets/js/site.js", "./assets/js/manifest.js"],
+    )
+
+
+def copy_csv_manifest(csv_path: Path, out_dir: Path) -> Path | None:
+    if not csv_path.exists():
+        return None
+    target_dir = out_dir / "data"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target = target_dir / "manifest.csv"
+    shutil.copyfile(csv_path, target)
+    return target
+
+
 def build_site(manifest_path: Path, out_dir: Path, site_title: str) -> list[DocumentRecord]:
     manifest_path = manifest_path.resolve()
     out_dir = out_dir.resolve()
@@ -468,7 +596,19 @@ def build_site(manifest_path: Path, out_dir: Path, site_title: str) -> list[Docu
     for existing_page in docs_dir.glob("*.html"):
         existing_page.unlink()
 
-    write_text(out_dir / "index.html", render_index_page(records, text_by_id, site_title))
+    csv_entries: list[ManifestEntry] = []
+    if DEFAULT_CSV_MANIFEST.exists():
+        csv_entries = load_csv_manifest(DEFAULT_CSV_MANIFEST)
+        copy_csv_manifest(DEFAULT_CSV_MANIFEST, out_dir)
+        write_text(
+            out_dir / "manifest.html",
+            render_manifest_page(csv_entries, site_title),
+        )
+
+    write_text(
+        out_dir / "index.html",
+        render_index_page(records, text_by_id, site_title, csv_entries),
+    )
     write_text(out_dir / "search.html", render_search_page(site_title))
     write_text(out_dir / "semantic.html", render_semantic_page(site_title))
 
