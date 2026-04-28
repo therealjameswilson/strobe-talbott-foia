@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Semantic Prototype | Strobe Talbott FOIA Case F-2017-13804</title>
-    <meta name="description" content="AI-enhanced semantic search prototype for the sample FOIA document collection.">
+    <title>Search | Strobe Talbott FOIA Case F-2017-13804</title>
+    <meta name="description" content="Pointer to the working manifest and keyword search for FOIA case F-2017-13804.">
     <link rel="stylesheet" href="./assets/css/style.css">
   </head>
   <body class="page-semantic">
@@ -19,44 +19,26 @@
           <nav class="site-nav" aria-label="Primary">
             <a href="./manifest.html">Manifest</a>
             <a href="./search.html">Keyword Search</a>
-            <a href="./semantic.html" aria-current="page">Semantic Search</a>
           </nav>
         </div>
       </div>
     </header>
     <main class="layout">
       <section class="card hero-card">
-        <p class="eyebrow">Semantic Search</p>
-        <h2>Top matching passages from extracted document text</h2>
-        <p class="lede">Semantic search ranks candidate passages from the precomputed chunk index. The current build uses keyword-overlap scoring and is structured so vector embeddings can be substituted without changes to the page interface.</p>
-        <div class="notice">
-          The ranking below is a lightweight approximation suitable for browse-and-discover research; cite the source PDF rather than the snippet.
+        <p class="eyebrow">Search this collection</p>
+        <h2>Use the manifest and keyword search</h2>
+        <p class="lede">Full-text semantic search across extracted document text is not yet available. To find FOIA records in case F-2017-13804, browse the full document manifest or run a keyword query against document identifiers, dates, titles, and source PDF URLs.</p>
+        <div class="action-row">
+          <a class="button-link" href="./manifest.html">Open the full manifest</a>
+          <a class="button-link button-link-secondary" href="./search.html">Keyword search</a>
         </div>
-      </section>
-      <section class="card">
-        <form id="semantic-search-form" class="search-form">
-          <label for="semantic-query">Search the sample collection</label>
-          <div class="search-form-row">
-            <input
-              id="semantic-query"
-              name="query"
-              type="search"
-              placeholder="Try: Moscow visit, NATO briefing, Balkans diplomacy"
-              autocomplete="off"
-            >
-            <button type="submit">Search</button>
-          </div>
-        </form>
-        <p id="semantic-status" class="status-pill">Loading semantic prototype data...</p>
       </section>
       <section class="card">
         <div class="section-heading">
-          <h2>Top matching chunks</h2>
-          <p id="semantic-summary">Enter a query to rank the sample chunk index.</p>
+          <h2>About semantic search</h2>
+          <p class="result-meta">Roadmap item · not yet wired to the full corpus</p>
         </div>
-        <div id="semantic-results" class="results-list">
-          <p class="empty-state">Enter a query to search the sample chunk index.</p>
-        </div>
+        <p>Semantic search will rank passages drawn from the extracted text of every released PDF in this case. Building it requires text extraction across the full corpus and an embedding index, which has not yet been produced. Until then, the manifest and keyword search are the supported entry points for research.</p>
       </section>
     </main>
     <footer class="site-footer">
@@ -66,6 +48,5 @@
       </div>
     </footer>
     <script src="./assets/js/site.js" defer></script>
-    <script src="./assets/js/semantic.js" defer></script>
   </body>
 </html>

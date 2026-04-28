@@ -199,7 +199,6 @@ def render_layout(
     home_url = relative_asset(root_prefix, "index.html")
     manifest_url = relative_asset(root_prefix, "manifest.html")
     search_url = relative_asset(root_prefix, "search.html")
-    semantic_url = relative_asset(root_prefix, "semantic.html")
     script_tags = ""
     for script_path in script_paths or []:
         script_tags += f'\n    <script src="{html.escape(script_path)}" defer></script>'
@@ -225,7 +224,6 @@ def render_layout(
           <nav class="site-nav" aria-label="Primary">
             {nav_link("Manifest", manifest_url, current_page == "manifest" or current_page == "collection")}
             {nav_link("Keyword Search", search_url, current_page == "search")}
-            {nav_link("Semantic Search", semantic_url, current_page == "semantic")}
           </nav>
         </div>
       </div>
@@ -294,7 +292,7 @@ def render_search_page(site_title: str) -> str:
         </div>
         <p>The page loads the published manifest (<a class="inline-link" href="./assets/search/manifest.json">manifest.json</a>, with a CSV fallback to <a class="inline-link" href="./data/manifest.csv">manifest.csv</a>) and matches every query token against each record's document ID, date, title, and PDF URL. Ranking weights identifier matches above titles, dates, and URLs. The full index is shipped with the site and runs entirely in the browser.</p>
         <hr class="gold-rule">
-        <p class="result-meta">For bulk analysis, download <a class="inline-link" href="./data/manifest.csv" download>manifest.csv</a>. For full-text discovery across extracted document text, see the <a class="inline-link" href="./semantic.html">semantic search</a> prototype.</p>
+        <p class="result-meta">For bulk analysis, download <a class="inline-link" href="./data/manifest.csv" download>manifest.csv</a>.</p>
       </section>"""
 
     return render_layout(
@@ -311,48 +309,31 @@ def render_search_page(site_title: str) -> str:
 
 def render_semantic_page(site_title: str) -> str:
     body = """      <section class="card hero-card">
-        <p class="eyebrow">Semantic Search</p>
-        <h2>Top matching passages from extracted document text</h2>
-        <p class="lede">Semantic search ranks candidate passages from the precomputed chunk index. The current build uses keyword-overlap scoring and is structured so vector embeddings can be substituted without changes to the page interface.</p>
-        <div class="notice">
-          The ranking below is a lightweight approximation suitable for browse-and-discover research; cite the source PDF rather than the snippet.
+        <p class="eyebrow">Search this collection</p>
+        <h2>Use the manifest and keyword search</h2>
+        <p class="lede">Full-text semantic search across extracted document text is not yet available. To find FOIA records in case F-2017-13804, browse the full document manifest or run a keyword query against document identifiers, dates, titles, and source PDF URLs.</p>
+        <div class="action-row">
+          <a class="button-link" href="./manifest.html">Open the full manifest</a>
+          <a class="button-link button-link-secondary" href="./search.html">Keyword search</a>
         </div>
-      </section>
-      <section class="card">
-        <form id="semantic-search-form" class="search-form">
-          <label for="semantic-query">Search the sample collection</label>
-          <div class="search-form-row">
-            <input
-              id="semantic-query"
-              name="query"
-              type="search"
-              placeholder="Try: Moscow visit, NATO briefing, Balkans diplomacy"
-              autocomplete="off"
-            >
-            <button type="submit">Search</button>
-          </div>
-        </form>
-        <p id="semantic-status" class="status-pill">Loading semantic prototype data...</p>
       </section>
       <section class="card">
         <div class="section-heading">
-          <h2>Top matching chunks</h2>
-          <p id="semantic-summary">Enter a query to rank the sample chunk index.</p>
+          <h2>About semantic search</h2>
+          <p class="result-meta">Roadmap item · not yet wired to the full corpus</p>
         </div>
-        <div id="semantic-results" class="results-list">
-          <p class="empty-state">Enter a query to search the sample chunk index.</p>
-        </div>
+        <p>Semantic search will rank passages drawn from the extracted text of every released PDF in this case. Building it requires text extraction across the full corpus and an embedding index, which has not yet been produced. Until then, the manifest and keyword search are the supported entry points for research.</p>
       </section>"""
 
     return render_layout(
-        page_title=f"Semantic Prototype | {site_title}",
+        page_title=f"Search | {site_title}",
         site_title=site_title,
         root_prefix=".",
         body_class="page-semantic",
         body=body,
-        page_description="AI-enhanced semantic search prototype for the sample FOIA document collection.",
+        page_description="Pointer to the working manifest and keyword search for FOIA case F-2017-13804.",
         current_page="semantic",
-        script_paths=["./assets/js/site.js", "./assets/js/semantic.js"],
+        script_paths=["./assets/js/site.js"],
     )
 
 
