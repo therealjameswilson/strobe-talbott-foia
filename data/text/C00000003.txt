@@ -1,0 +1,5 @@
+Sample placeholder text for MVP demonstration only. This content is a stand-in for possible summit talking points and should not be cited as a historical source.
+
+The sample includes references to a principals meeting, briefing books, draft language for opening remarks, and a reminder to compare public messaging with internal guidance.
+
+It exists so the MVP can generate per-document pages and a simple semantic search prototype from predictable text.

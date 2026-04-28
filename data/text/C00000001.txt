@@ -1,0 +1,5 @@
+Sample placeholder text for MVP demonstration only. This is not a real FOIA release or a transcription of a State Department document.
+
+This sample memorandum imagines a briefing packet on NATO expansion and interagency coordination. It mentions alliance consultations, sequencing of talking points, and the need to align policy language before senior-level review.
+
+Researchers should treat this text as synthetic test content used only to validate document page generation, keyword search, and chunk-based prototype ranking.

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Semantic Prototype | Strobe Talbott FOIA Case F-2017-13804</title>
+    <meta name="description" content="AI-enhanced semantic search prototype for the sample FOIA document collection.">
+    <link rel="stylesheet" href="./assets/css/style.css">
+  </head>
+  <body class="page-semantic">
+    <header class="masthead">
+      <div class="layout">
+        <p class="eyebrow">Strobe Talbott FOIA MVP</p>
+        <div class="masthead-row">
+          <div class="title-lockup">
+            <h1>Strobe Talbott FOIA Case F-2017-13804</h1>
+            <p class="masthead-note">Sample-first static publication workflow for FRUS compilers and Clinton administration researchers.</p>
+          </div>
+          <nav class="site-nav" aria-label="Primary">
+            <a href="./index.html">Collection</a>
+            <a href="./search.html">Keyword Search</a>
+            <a href="./semantic.html" aria-current="page">Semantic Prototype</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+    <main class="layout">
+      <section class="card hero-card">
+        <p class="eyebrow">AI-enhanced / semantic search prototype</p>
+        <h2>Top matching chunks from precomputed sample text</h2>
+        <p class="lede">This MVP does not use real embeddings yet. It loads chunk data generated at build time and ranks candidate passages by keyword overlap while preserving a clean upgrade path to vectors later.</p>
+        <div class="notice">
+          <strong>Prototype notice.</strong> The ranking below is an intentionally lightweight approximation for interface and workflow testing.
+        </div>
+      </section>
+      <section class="card">
+        <form id="semantic-search-form" class="search-form">
+          <label for="semantic-query">Search the sample collection</label>
+          <div class="search-form-row">
+            <input
+              id="semantic-query"
+              name="query"
+              type="search"
+              placeholder="Try: Moscow visit, NATO briefing, Balkans diplomacy"
+              autocomplete="off"
+            >
+            <button type="submit">Search</button>
+          </div>
+        </form>
+        <p id="semantic-status" class="status-pill">Loading semantic prototype data...</p>
+      </section>
+      <section class="card">
+        <div class="section-heading">
+          <h2>Top matching chunks</h2>
+          <p id="semantic-summary">Enter a query to rank the sample chunk index.</p>
+        </div>
+        <div id="semantic-results" class="results-list">
+          <p class="empty-state">Enter a query to search the sample chunk index.</p>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="layout">
+        <p>This MVP uses synthetic sample records for workflow testing. It does not publish the full PDF corpus.</p>
+      </div>
+    </footer>
+    <script src="./assets/js/site.js" defer></script>
+    <script src="./assets/js/semantic.js" defer></script>
+  </body>
+</html>

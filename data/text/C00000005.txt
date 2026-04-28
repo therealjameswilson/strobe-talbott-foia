@@ -1,0 +1,5 @@
+Sample placeholder text for MVP demonstration only. This research note is synthetic and should be treated as development data.
+
+It sketches archival follow-up tasks, missing attachments, cross-references to other memoranda, and reminders about keeping source URLs stable in the public manifest.
+
+The chunk builder uses files like this to create lightweight browser-searchable passages without downloading any real PDF corpus.

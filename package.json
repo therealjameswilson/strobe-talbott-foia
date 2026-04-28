@@ -1,0 +1,15 @@
+{
+  "name": "strobe-talbott-foia",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static GitHub Pages site for FOIA case F-2017-13804",
+  "scripts": {
+    "build:site": "python3 scripts/build_site.py && python3 scripts/build_chunks.py && python3 scripts/build_semantic_index.py",
+    "build:search": "pagefind --site site",
+    "build": "npm run build:site && npm run build:search",
+    "serve": "python3 -m http.server 8000 --directory site"
+  },
+  "devDependencies": {
+    "pagefind": "^1.0.0"
+  }
+}

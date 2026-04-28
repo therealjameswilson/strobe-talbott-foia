@@ -1,0 +1,5 @@
+Sample placeholder text for MVP demonstration only. This record is synthetic and does not represent an actual cable in the FOIA case.
+
+The text describes preparations for a Moscow visit, including scheduling, embassy coordination, background notes on bilateral issues, and a short summary of anticipated press themes.
+
+The purpose of this file is to make the static site searchable while the real extraction workflow is still under development.

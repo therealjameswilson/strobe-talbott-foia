@@ -1,0 +1,47 @@
+[
+  {
+    "id": "C00000001",
+    "case_number": "F-2017-13804",
+    "title": "Placeholder sample memorandum on NATO expansion briefing",
+    "date": "1994-02-18",
+    "source_pdf_url": "https://foia.state.gov/example/C00000001.pdf",
+    "release_status": "RELEASE IN FULL",
+    "text_path": "data/text/C00000001.txt"
+  },
+  {
+    "id": "C00000002",
+    "case_number": "F-2017-13804",
+    "title": "Placeholder sample cable on Moscow visit preparation",
+    "date": "1995-07-09",
+    "source_pdf_url": "https://foia.state.gov/example/C00000002.pdf",
+    "release_status": "RELEASE IN PART",
+    "text_path": "data/text/C00000002.txt"
+  },
+  {
+    "id": "C00000003",
+    "case_number": "F-2017-13804",
+    "title": "Placeholder sample talking points for summit meeting",
+    "date": "1996-03-21",
+    "source_pdf_url": "https://foia.state.gov/example/C00000003.pdf",
+    "release_status": "RELEASE IN FULL",
+    "text_path": "data/text/C00000003.txt"
+  },
+  {
+    "id": "C00000004",
+    "case_number": "F-2017-13804",
+    "title": "Placeholder sample memorandum of conversation on Balkans diplomacy",
+    "date": "1997-11-04",
+    "source_pdf_url": "https://foia.state.gov/example/C00000004.pdf",
+    "release_status": "RELEASE IN FULL",
+    "text_path": "data/text/C00000004.txt"
+  },
+  {
+    "id": "C00000005",
+    "case_number": "F-2017-13804",
+    "title": "Placeholder sample research note on archival follow-up",
+    "date": "1998-06-12",
+    "source_pdf_url": "https://foia.state.gov/example/C00000005.pdf",
+    "release_status": "RELEASE IN PART",
+    "text_path": "data/text/C00000005.txt"
+  }
+]
