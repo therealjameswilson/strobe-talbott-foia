@@ -17,6 +17,7 @@
   --shadow-deep: 0 14px 32px rgba(27, 20, 16, 0.18);
   --shadow-card: 0 4px 12px rgba(27, 20, 16, 0.08);
   --radius: 4px;
+  --serif: "Times New Roman", Times, serif;
 }
 
 * {
@@ -31,9 +32,9 @@ body {
   margin: 0;
   background: var(--parchment);
   color: var(--ink);
-  font-family: "Iowan Old Style", "Hoefler Text", "Adobe Caslon Pro", "Palatino Linotype", "Book Antiqua", Georgia, "Times New Roman", Times, serif;
-  font-size: 17px;
-  line-height: 1.6;
+  font-family: var(--serif);
+  font-size: 12pt;
+  line-height: 1.5;
   background-image:
     radial-gradient(circle at 22% 18%, rgba(201, 168, 76, 0.05) 0, transparent 38%),
     radial-gradient(circle at 78% 82%, rgba(91, 26, 24, 0.04) 0, transparent 42%);
@@ -44,10 +45,18 @@ a {
   color: var(--ruby);
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
+  font-family: var(--serif);
 }
 
 a:hover {
   color: var(--ruby-deep);
+}
+
+h1, h2, h3, h4, h5, h6,
+input, select, textarea, button,
+table, th, td,
+dt, dd, p, li, code, pre {
+  font-family: var(--serif);
 }
 
 .layout {
@@ -109,10 +118,10 @@ a:hover {
 .eyebrow {
   margin: 0 0 0.7rem;
   color: var(--gold);
-  font-family: "Trajan Pro", "Cinzel", "Optima", "Iowan Old Style", Georgia, serif;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.28em;
+  font-family: var(--serif);
+  font-size: 12pt;
+  font-weight: 700;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
@@ -120,26 +129,30 @@ a:hover {
   color: var(--gold-soft);
 }
 
-.masthead h1,
-.hero-card h2,
-.card h2 {
+.masthead h1 {
   margin: 0;
-  line-height: 1.18;
+  font-family: var(--serif);
   font-weight: 700;
-  font-family: "Trajan Pro", "Cinzel", "Iowan Old Style", "Hoefler Text", "Adobe Caslon Pro", Georgia, "Times New Roman", serif;
+  font-size: 20pt;
+  line-height: 1.2;
+  color: var(--parchment-pale);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
   letter-spacing: 0.01em;
 }
 
-.masthead h1 {
-  font-size: clamp(1.9rem, 3.6vw, 2.7rem);
-  color: var(--parchment-pale);
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+.hero-card h2,
+.card h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 14pt;
+  line-height: 1.25;
 }
 
 .masthead-note {
   margin: 0.6rem 0 0;
   color: var(--gold-pale);
-  font-size: 0.98rem;
+  font-size: 12pt;
   font-style: italic;
   max-width: 40rem;
   opacity: 0.92;
@@ -162,9 +175,10 @@ a:hover {
   background: transparent;
   color: var(--gold-pale);
   text-decoration: none;
-  font-family: "Trajan Pro", "Cinzel", "Optima", Georgia, serif;
-  font-size: 0.78rem;
-  letter-spacing: 0.18em;
+  font-family: var(--serif);
+  font-size: 12pt;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
 }
@@ -185,16 +199,16 @@ a:hover {
   align-items: center;
   justify-content: center;
   min-height: 2.6rem;
-  padding: 0.65rem 1.15rem;
+  padding: 0.55rem 1.05rem;
   border: 1px solid var(--ruby);
   border-radius: 2px;
   background: var(--ruby);
   color: var(--gold-pale);
   text-decoration: none;
-  font-family: "Trajan Pro", "Cinzel", "Optima", Georgia, serif;
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
+  font-family: var(--serif);
+  font-size: 12pt;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
   transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
@@ -257,18 +271,18 @@ main.layout {
 }
 
 .hero-card h2 {
-  font-size: clamp(1.55rem, 3vw, 2.1rem);
+  font-size: 18pt;
   margin-bottom: 0.6rem;
 }
 
 .card h2 {
-  font-size: 1.35rem;
+  font-size: 14pt;
   margin-bottom: 0.55rem;
 }
 
 .lede {
   color: var(--ink);
-  font-size: 1.06rem;
+  font-size: 12pt;
   margin: 0.4rem 0 0.8rem;
 }
 
@@ -280,6 +294,7 @@ main.layout {
   background: rgba(241, 227, 182, 0.5);
   color: var(--ink-soft);
   font-style: italic;
+  font-size: 12pt;
 }
 
 .action-row {
@@ -296,7 +311,7 @@ main.layout {
 }
 
 .stat-card h2 {
-  font-size: clamp(2.2rem, 5.5vw, 3.4rem);
+  font-size: 22pt;
   color: var(--ruby);
 }
 
@@ -304,6 +319,7 @@ main.layout {
   margin: 0.35rem 0 0;
   color: var(--ink-soft);
   font-style: italic;
+  font-size: 12pt;
 }
 
 .section-heading {
@@ -329,20 +345,25 @@ main.layout {
   width: 100%;
   border-collapse: collapse;
   min-width: 760px;
+  font-family: var(--serif);
+  font-size: 12pt;
 }
 
 .document-table th,
 .document-table td {
-  padding: 0.85rem 0.85rem;
+  padding: 0.7rem 0.75rem;
   border-bottom: 1px solid var(--parchment-warm);
   vertical-align: top;
   text-align: left;
+  font-family: var(--serif);
+  font-size: 12pt;
 }
 
 .document-table th {
-  font-family: "Trajan Pro", "Cinzel", "Optima", Georgia, serif;
-  font-size: 0.74rem;
-  letter-spacing: 0.14em;
+  font-family: var(--serif);
+  font-size: 12pt;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ruby-deep);
   border-bottom: 2px solid var(--gold);
@@ -355,20 +376,31 @@ main.layout {
 
 .table-link,
 .inline-link {
-  font-weight: 600;
+  font-weight: 700;
+  font-family: var(--serif);
 }
 
 .table-snippet {
   margin: 0.35rem 0 0;
   color: var(--ink-soft);
-  font-size: 0.93rem;
+  font-size: 12pt;
+  font-style: italic;
+  font-family: var(--serif);
+}
+
+.manifest-description {
+  margin: 0.35rem 0 0;
+  color: var(--ink-soft);
+  font-family: var(--serif);
+  font-size: 12pt;
   font-style: italic;
 }
 
 .document-summary {
   margin: 0 0 1rem;
   color: var(--ink-soft);
-  font-family: "Iowan Old Style", Georgia, serif;
+  font-family: var(--serif);
+  font-size: 12pt;
   font-style: italic;
 }
 
@@ -380,7 +412,7 @@ main.layout {
 }
 
 .metadata-list div {
-  padding: 0.95rem 1rem;
+  padding: 0.85rem 1rem;
   border-radius: 2px;
   border: 1px solid var(--parchment-warm);
   border-left: 3px solid var(--gold);
@@ -389,16 +421,17 @@ main.layout {
 
 .metadata-list dt {
   color: var(--ruby);
-  font-family: "Trajan Pro", "Cinzel", "Optima", Georgia, serif;
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
+  font-family: var(--serif);
+  font-size: 12pt;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .metadata-list dd {
   margin: 0.45rem 0 0;
-  font-family: "Iowan Old Style", Georgia, serif;
+  font-family: var(--serif);
+  font-size: 12pt;
 }
 
 .citation-text {
@@ -408,15 +441,22 @@ main.layout {
   border: 1px solid var(--parchment-warm);
   border-left: 3px solid var(--gold);
   background: var(--parchment);
-  font-size: 0.97rem;
-  font-family: "Iowan Old Style", "Hoefler Text", Georgia, serif;
+  font-family: var(--serif);
+  font-size: 12pt;
   font-style: italic;
+}
+
+.document-text {
+  font-family: var(--serif);
+  font-size: 12pt;
 }
 
 .document-text p {
   margin-top: 0;
   text-align: justify;
   hyphens: auto;
+  font-family: var(--serif);
+  font-size: 12pt;
 }
 
 .document-text p:last-child {
@@ -441,12 +481,12 @@ main.layout {
 }
 
 .search-form label {
-  font-family: "Trajan Pro", "Cinzel", "Optima", Georgia, serif;
-  font-size: 0.78rem;
-  letter-spacing: 0.18em;
+  font-family: var(--serif);
+  font-size: 12pt;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ruby);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .search-form-row {
@@ -458,13 +498,13 @@ main.layout {
 input[type="search"] {
   flex: 1 1 360px;
   min-width: 0;
-  padding: 0.85rem 1rem;
+  padding: 0.75rem 0.9rem;
   border: 1px solid var(--ruby-soft);
   border-radius: 2px;
   background: #FFFEF9;
   color: var(--ink);
-  font: inherit;
-  font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  font-family: var(--serif);
+  font-size: 12pt;
   transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 
@@ -477,14 +517,13 @@ input[type="search"]:focus {
 button {
   border: 1px solid var(--ruby-deep);
   border-radius: 2px;
-  padding: 0.85rem 1.35rem;
+  padding: 0.7rem 1.15rem;
   background: var(--ruby);
   color: var(--gold-pale);
-  font: inherit;
-  font-family: "Trajan Pro", "Cinzel", "Optima", Georgia, serif;
-  font-size: 0.82rem;
+  font-family: var(--serif);
+  font-size: 12pt;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
   transition: background 140ms ease, color 140ms ease;
@@ -500,13 +539,13 @@ button:hover {
   align-items: center;
   gap: 0.5rem;
   margin: 0.85rem 0 0;
-  padding: 0.45rem 0.9rem;
+  padding: 0.4rem 0.85rem;
   border-radius: 2px;
   border: 1px solid var(--gold-soft);
   background: rgba(241, 227, 182, 0.4);
   color: var(--ink-soft);
-  font-family: "Iowan Old Style", Georgia, serif;
-  font-size: 0.92rem;
+  font-family: var(--serif);
+  font-size: 12pt;
   font-style: italic;
 }
 
@@ -515,7 +554,7 @@ button:hover {
   background: rgba(201, 168, 76, 0.18);
   color: var(--ruby-deep);
   font-style: normal;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .status-pill[data-state="warning"] {
@@ -551,8 +590,9 @@ button:hover {
 
 .result-card h3 {
   margin: 0 0 0.4rem;
-  font-family: "Iowan Old Style", "Hoefler Text", Georgia, serif;
-  font-size: 1.12rem;
+  font-family: var(--serif);
+  font-size: 13pt;
+  font-weight: 700;
   color: var(--ruby-deep);
   line-height: 1.3;
 }
@@ -561,15 +601,25 @@ button:hover {
 .result-meta {
   margin: 0 0 0.45rem;
   color: var(--ink-soft);
-  font-family: "Trajan Pro", "Cinzel", "Optima", Georgia, serif;
-  font-size: 0.74rem;
-  letter-spacing: 0.14em;
+  font-family: var(--serif);
+  font-size: 12pt;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  font-weight: 700;
 }
 
 .result-snippet {
   margin: 0.35rem 0 0;
-  font-family: "Iowan Old Style", Georgia, serif;
+  font-family: var(--serif);
+  font-size: 12pt;
+}
+
+.result-description {
+  margin: 0.4rem 0 0;
+  font-family: var(--serif);
+  font-size: 12pt;
+  font-style: italic;
+  color: var(--ink-soft);
 }
 
 mark {
@@ -577,7 +627,7 @@ mark {
   color: var(--ruby-deep);
   padding: 0 2px;
   border-radius: 1px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* Decorative hairline rule for use inside cards */
@@ -602,16 +652,18 @@ mark {
   border: 1px dashed var(--gold-soft);
   background: rgba(241, 227, 182, 0.28);
   border-radius: 2px;
-  font-size: 0.93rem;
+  font-family: var(--serif);
+  font-size: 12pt;
   color: var(--ink-soft);
 }
 
 .search-tips strong {
-  font-family: "Trajan Pro", "Cinzel", "Optima", Georgia, serif;
-  font-size: 0.74rem;
-  letter-spacing: 0.16em;
+  font-family: var(--serif);
+  font-size: 12pt;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ruby);
+  font-weight: 700;
 }
 
 .search-tips code {
@@ -619,7 +671,8 @@ mark {
   border: 1px solid var(--parchment-warm);
   padding: 0.05rem 0.4rem;
   border-radius: 2px;
-  font-size: 0.88rem;
+  font-family: var(--serif);
+  font-size: 12pt;
   color: var(--ruby-deep);
 }
 
@@ -631,10 +684,10 @@ mark {
   background: rgba(201, 168, 76, 0.22);
   color: var(--ruby-deep);
   border: 1px solid var(--gold-soft);
-  font-family: "Trajan Pro", "Cinzel", "Optima", Georgia, serif;
-  font-size: 0.74rem;
-  letter-spacing: 0.14em;
-  font-weight: 600;
+  font-family: var(--serif);
+  font-size: 12pt;
+  letter-spacing: 0.06em;
+  font-weight: 700;
 }
 
 .copy-button.is-copied {
@@ -647,6 +700,8 @@ mark {
   margin: 0;
   color: var(--ink-soft);
   font-style: italic;
+  font-family: var(--serif);
+  font-size: 12pt;
 }
 
 code {
@@ -654,7 +709,8 @@ code {
   border: 1px solid var(--parchment-warm);
   padding: 0.05rem 0.35rem;
   border-radius: 2px;
-  font-size: 0.92em;
+  font-family: var(--serif);
+  font-size: 12pt;
   color: var(--ruby-deep);
 }
 
@@ -673,23 +729,24 @@ code {
 .site-footer p {
   margin: 0;
   color: var(--ink-soft);
-  font-size: 0.92rem;
+  font-family: var(--serif);
+  font-size: 12pt;
   font-style: italic;
 }
 
 .site-footer .disclaimer {
   font-style: normal;
-  font-family: "Trajan Pro", "Cinzel", "Optima", Georgia, serif;
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
+  font-family: var(--serif);
+  font-size: 12pt;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ruby-deep);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 @media (max-width: 720px) {
   body {
-    font-size: 16px;
+    font-size: 12pt;
   }
 
   .layout {
@@ -713,7 +770,7 @@ code {
   }
 
   .site-nav a {
-    font-size: 0.72rem;
-    letter-spacing: 0.14em;
+    font-size: 12pt;
+    letter-spacing: 0.06em;
   }
 }

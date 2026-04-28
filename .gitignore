@@ -4,3 +4,5 @@ __pycache__/
 *.pyc
 node_modules/
 data/raw/
+data/descriptions/pdfs/
+data/descriptions/cache/

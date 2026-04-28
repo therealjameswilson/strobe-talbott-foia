@@ -15,6 +15,7 @@ DEFAULT_SITE_TITLE = "Strobe Talbott FOIA Case F-2017-13804"
 EXPECTED_CASE_NUMBER = "F-2017-13804"
 STATIC_ASSETS_DIR = PROJECT_ROOT / "site" / "assets"
 DEFAULT_CSV_MANIFEST = PROJECT_ROOT / "data" / "manifest.csv"
+DEFAULT_DESCRIPTIONS_JSON = PROJECT_ROOT / "data" / "manifest_descriptions.json"
 
 
 @dataclass
@@ -23,6 +24,8 @@ class ManifestEntry:
     date: str
     title: str
     pdf_url: str
+    description: str = ""
+    description_source: str = ""
 
 
 @dataclass
@@ -496,20 +499,50 @@ def render_document_page(
     )
 
 
-def load_csv_manifest(csv_path: Path) -> list[ManifestEntry]:
+def load_csv_manifest(
+    csv_path: Path,
+    descriptions: dict[str, dict[str, str]] | None = None,
+) -> list[ManifestEntry]:
     entries: list[ManifestEntry] = []
+    descriptions = descriptions or {}
     with csv_path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
         for row in reader:
+            doc_id = (row.get("document_id") or "").strip()
+            entry_description = (row.get("description") or "").strip()
+            entry_source = (row.get("description_source") or "").strip()
+            if not entry_description and doc_id in descriptions:
+                entry_description = descriptions[doc_id].get("description", "")
+                entry_source = descriptions[doc_id].get("source", entry_source)
             entries.append(
                 ManifestEntry(
-                    document_id=(row.get("document_id") or "").strip(),
+                    document_id=doc_id,
                     date=(row.get("date") or "").strip(),
                     title=(row.get("title") or "").strip(),
                     pdf_url=(row.get("pdf_url") or "").strip(),
+                    description=entry_description,
+                    description_source=entry_source,
                 )
             )
     return entries
+
+
+def load_descriptions(path: Path) -> dict[str, dict[str, str]]:
+    if not path.exists():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    return {
+        str(k): {
+            "description": str(v.get("description", "")) if isinstance(v, dict) else "",
+            "source": str(v.get("source", "")) if isinstance(v, dict) else "",
+        }
+        for k, v in data.items()
+    }
 
 
 def render_manifest_page(entries: list[ManifestEntry], site_title: str) -> str:
@@ -517,11 +550,19 @@ def render_manifest_page(entries: list[ManifestEntry], site_title: str) -> str:
     for entry in entries:
         if not entry.document_id and not entry.pdf_url:
             continue
+        description_html = ""
+        if entry.description:
+            description_html = (
+                f'\n              <p class="manifest-description">'
+                f"{html.escape(entry.description)}</p>"
+            )
         rows.append(
             f"""          <tr>
             <td>{html.escape(entry.document_id)}</td>
             <td>{html.escape(entry.date)}</td>
-            <td>{html.escape(entry.title)}</td>
+            <td>
+              <strong>{html.escape(entry.title)}</strong>{description_html}
+            </td>
             <td><a class="inline-link" href="{html.escape(entry.pdf_url)}" rel="noopener" target="_blank">PDF</a></td>
           </tr>"""
         )
@@ -538,10 +579,10 @@ def render_manifest_page(entries: list[ManifestEntry], site_title: str) -> str:
       <section class="card">
         <div class="section-heading">
           <h2>All documents</h2>
-          <p>Manifest entries: <strong>{len(rows)}</strong>. Source: <a class="inline-link" href="./data/manifest.csv">data/manifest.csv</a>.</p>
+          <p>Manifest entries: <strong>{len(rows)}</strong>. Source: <a class="inline-link" href="./data/manifest.csv">data/manifest.csv</a> (with neutral 2-3 sentence descriptions joined from <a class="inline-link" href="./data/manifest_enriched.csv">manifest_enriched.csv</a>).</p>
         </div>
         <form class="search-form" role="search" onsubmit="return false;">
-          <label for="manifest-filter">Filter by ID, date, or title</label>
+          <label for="manifest-filter">Filter by ID, date, title, or description</label>
           <div class="search-form-row">
             <input
               id="manifest-filter"
@@ -559,7 +600,7 @@ def render_manifest_page(entries: list[ManifestEntry], site_title: str) -> str:
               <tr>
                 <th scope="col">Document ID</th>
                 <th scope="col">Date</th>
-                <th scope="col">Title</th>
+                <th scope="col">Title &amp; description</th>
                 <th scope="col">PDF</th>
               </tr>
             </thead>
@@ -591,6 +632,9 @@ def copy_csv_manifest(csv_path: Path, out_dir: Path) -> Path | None:
     target_dir.mkdir(parents=True, exist_ok=True)
     target = target_dir / "manifest.csv"
     shutil.copyfile(csv_path, target)
+    enriched = csv_path.parent / "manifest_enriched.csv"
+    if enriched.exists():
+        shutil.copyfile(enriched, target_dir / "manifest_enriched.csv")
     return target
 
 
@@ -610,6 +654,8 @@ def write_search_manifest(
                 "date": entry.date,
                 "title": entry.title,
                 "pdf_url": entry.pdf_url,
+                "description": entry.description,
+                "description_source": entry.description_source,
             }
             for entry in entries
             if entry.document_id or entry.pdf_url
@@ -640,9 +686,11 @@ def build_site(manifest_path: Path, out_dir: Path, site_title: str) -> list[Docu
     for existing_page in docs_dir.glob("*.html"):
         existing_page.unlink()
 
+    descriptions = load_descriptions(DEFAULT_DESCRIPTIONS_JSON)
+
     csv_entries: list[ManifestEntry] = []
     if DEFAULT_CSV_MANIFEST.exists():
-        csv_entries = load_csv_manifest(DEFAULT_CSV_MANIFEST)
+        csv_entries = load_csv_manifest(DEFAULT_CSV_MANIFEST, descriptions)
         copy_csv_manifest(DEFAULT_CSV_MANIFEST, out_dir)
         write_text(
             out_dir / "manifest.html",

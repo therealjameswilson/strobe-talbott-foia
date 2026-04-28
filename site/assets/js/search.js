@@ -61,12 +61,14 @@ function recordsFromCsvText(text) {
   const idxDate = header.indexOf("date");
   const idxTitle = header.indexOf("title");
   const idxUrl = header.indexOf("pdf_url");
+  const idxDesc = header.indexOf("description");
   return rows
     .map((cells) => ({
       document_id: (cells[idxId] || "").trim(),
       date: (cells[idxDate] || "").trim(),
       title: (cells[idxTitle] || "").trim(),
       pdf_url: (cells[idxUrl] || "").trim(),
+      description: idxDesc >= 0 ? (cells[idxDesc] || "").trim() : "",
     }))
     .filter((r) => r.document_id || r.pdf_url);
 }
@@ -116,11 +118,13 @@ function scoreRecord(record, tokens) {
   const date = (record.date || "").toLowerCase();
   const title = (record.title || "").toLowerCase();
   const url = (record.pdf_url || "").toLowerCase();
+  const description = (record.description || "").toLowerCase();
   let score = 0;
   for (const token of tokens) {
     let tokenScore = 0;
     if (id.includes(token)) tokenScore += 5;
     if (title.includes(token)) tokenScore += 3;
+    if (description.includes(token)) tokenScore += 2;
     if (date.includes(token)) tokenScore += 2;
     if (url.includes(token)) tokenScore += 1;
     if (tokenScore === 0) return 0;
@@ -141,6 +145,9 @@ function renderResult(record, tokens, hasDocPage) {
   const idHtml = highlight(record.document_id || "—", tokens);
   const dateHtml = highlight(record.date || "Unknown date", tokens);
   const urlHtml = highlight(record.pdf_url || "", tokens);
+  const descriptionHtml = record.description
+    ? `<p class="result-description">${highlight(record.description, tokens)}</p>`
+    : "";
   const docPageLink = docPageUrl
     ? `<a class="inline-link" href="${escapeHtml(docPageUrl)}">Open document page</a> · `
     : "";
@@ -149,6 +156,7 @@ function renderResult(record, tokens, hasDocPage) {
       <p class="result-label">Document ID ${idHtml}</p>
       <h3>${titleHtml}</h3>
       <p class="result-meta">${dateHtml}</p>
+      ${descriptionHtml}
       <p class="result-snippet"><a class="inline-link" href="${escapeHtml(record.pdf_url)}" rel="noopener" target="_blank">${urlHtml || "Source PDF"}</a></p>
       <p>${docPageLink}<a class="inline-link" href="${escapeHtml(record.pdf_url)}" rel="noopener" target="_blank">Direct PDF link</a></p>
     </article>
