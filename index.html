@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Strobe Talbott FOIA Case F-2017-13804</title>
+    <meta name="description" content="Public GitHub Pages site for Strobe Talbott FOIA case F-2017-13804. Browse the full document manifest and download metadata as CSV.">
+    <style>
+      :root {
+        --ink: #1c1f25;
+        --muted: #4a5161;
+        --accent: #1f4f8a;
+        --accent-hover: #15396a;
+        --bg: #f7f7f4;
+        --card: #ffffff;
+        --border: #d9d9d3;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        line-height: 1.55;
+      }
+      .layout { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+      header.masthead {
+        background: var(--ink);
+        color: #f5f3ec;
+        padding: 48px 0 40px;
+        border-bottom: 4px solid var(--accent);
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 0.78rem;
+        color: #c9c2ad;
+        margin: 0 0 8px;
+      }
+      header h1 { margin: 0 0 8px; font-size: 1.85rem; line-height: 1.2; }
+      header p { margin: 0; color: #d8d3c0; max-width: 640px; }
+      main { padding: 32px 0 64px; }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 28px;
+        margin: 0 0 24px;
+      }
+      .card h2 { margin: 0 0 12px; font-size: 1.35rem; }
+      .card p { margin: 0 0 12px; color: var(--muted); }
+      .action-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+      .button-link {
+        display: inline-block;
+        background: var(--accent);
+        color: #fff;
+        padding: 10px 18px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+      .button-link:hover { background: var(--accent-hover); }
+      .button-link-secondary {
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+      }
+      .button-link-secondary:hover { background: var(--accent); color: #fff; }
+      ul.link-list { padding-left: 20px; margin: 12px 0 0; }
+      ul.link-list li { margin-bottom: 6px; }
+      ul.link-list a { color: var(--accent); }
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 24px 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      code { background: #efeee7; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+    </style>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="layout">
+        <p class="eyebrow">Strobe Talbott FOIA MVP</p>
+        <h1>Strobe Talbott FOIA Case F-2017-13804</h1>
+        <p>Public document register harvested from the State Department FOIA Library, prepared for FRUS compilers and historians working on Clinton administration volumes.</p>
+      </div>
+    </header>
+    <main class="layout">
+      <section class="card">
+        <p class="eyebrow">Full FOIA manifest</p>
+        <h2>1,474 catalogued documents</h2>
+        <p>The complete document manifest harvested from the State Department FOIA Library for case F-2017-13804. Every row links directly to the original PDF on <code>foia.state.gov</code>.</p>
+        <div class="action-row">
+          <a class="button-link" href="./site/manifest.html">Browse FOIA manifest</a>
+          <a class="button-link button-link-secondary" href="./data/manifest.csv" download>Download manifest.csv</a>
+        </div>
+      </section>
+      <section class="card">
+        <p class="eyebrow">Site sections</p>
+        <h2>Explore the publication</h2>
+        <ul class="link-list">
+          <li><a href="./site/index.html">Project overview and sample document collection</a></li>
+          <li><a href="./site/manifest.html">Full FOIA manifest (1,474 documents with PDF links)</a></li>
+          <li><a href="./site/search.html">Keyword search prototype</a></li>
+          <li><a href="./site/semantic.html">Semantic search prototype</a></li>
+          <li><a href="./data/manifest.csv">Raw manifest CSV (downloadable metadata)</a></li>
+        </ul>
+      </section>
+      <section class="card">
+        <p class="eyebrow">About this site</p>
+        <h2>Static publication workflow</h2>
+        <p>This site is generated from a Python harvesting and build pipeline and deployed as static HTML to GitHub Pages. PDFs are not stored in this repository; the manifest links to the originals on the State Department FOIA site. See the <a href="https://github.com/therealjameswilson/strobe-talbott-foia">project README on GitHub</a> for build instructions and methodology.</p>
+      </section>
+    </main>
+    <footer>
+      <div class="layout">
+        <p>This MVP catalogs publicly released FOIA records. PDFs are hosted by the U.S. Department of State at <code>foia.state.gov</code>.</p>
+      </div>
+    </footer>
+  </body>
+</html>
