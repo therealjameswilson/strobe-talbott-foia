@@ -37,4 +37,12 @@ def test_normalize_record_uses_existing_manifest_schema() -> None:
         "DOC_0C06697823/C06697823.pdf"
     )
     assert record.release_status == "RELEASE IN FULL"
-    assert record.text_path == "data/text/C06697823.txt"
+    assert record.text_path == ""
+    assert record.posted_date == "2020-02-07"
+    assert record.raw_release_status == "RIFPUB"
+    assert record.harvested_at
+
+
+def test_harvest_limit_zero_means_all_records() -> None:
+    records = harvest_foia.build_placeholder_records("F-2017-13804", 3)
+    assert len(records) == 3

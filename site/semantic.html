@@ -3,50 +3,68 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Search | Strobe Talbott FOIA Case F-2017-13804</title>
-    <meta name="description" content="Pointer to the working manifest and keyword search for FOIA case F-2017-13804.">
+    <title>Semantic Prototype | Strobe Talbott FOIA Case F-2017-13804</title>
+    <meta name="description" content="AI-enhanced semantic search prototype for Strobe Talbott FOIA documents.">
     <link rel="stylesheet" href="./assets/css/style.css">
   </head>
   <body class="page-semantic">
     <header class="masthead">
       <div class="layout">
-        <p class="eyebrow">Research Portal · FOIA Case F-2017-13804</p>
+        <p class="eyebrow">Strobe Talbott FOIA Research Desk</p>
         <div class="masthead-row">
           <div class="title-lockup">
             <h1>Strobe Talbott FOIA Case F-2017-13804</h1>
-            <p class="masthead-note">A research portal for FRUS compilers and historians of Clinton-era diplomacy. Document metadata harvested from the State Department FOIA Library; PDFs hosted at the source.</p>
+            <p class="masthead-note">A ruby-and-gold research interface for FRUS compilers tracking case F-2017-13804.</p>
           </div>
           <nav class="site-nav" aria-label="Primary">
-            <a href="./manifest.html">Manifest</a>
+            <a href="./index.html">Collection</a>
             <a href="./search.html">Keyword Search</a>
+            <a href="./semantic.html" aria-current="page">Semantic Prototype</a>
           </nav>
         </div>
       </div>
     </header>
     <main class="layout">
       <section class="card hero-card">
-        <p class="eyebrow">Search this collection</p>
-        <h2>Use the manifest and keyword search</h2>
-        <p class="lede">Full-text semantic search across extracted document text is not yet available. To find FOIA records in case F-2017-13804, browse the full document manifest or run a keyword query against document identifiers, dates, titles, and source PDF URLs.</p>
-        <div class="action-row">
-          <a class="button-link" href="./manifest.html">Open the full manifest</a>
-          <a class="button-link button-link-secondary" href="./search.html">Keyword search</a>
+        <p class="eyebrow">AI-enhanced Prototype</p>
+        <h2>Local vector ranking over extracted text chunks</h2>
+        <p class="lede">This page ranks extracted text chunks with a deterministic local TF-IDF vector index. It requires no API key and can later be replaced by model embeddings.</p>
+        <div class="notice">
+          <strong>Compiler note.</strong> Search quality depends on the amount and quality of extracted text. OCR status is tracked separately for scanned PDFs.
         </div>
       </section>
       <section class="card">
+        <form id="semantic-search-form" class="search-form">
+          <label for="semantic-query">Search extracted chunk text</label>
+          <div class="search-form-row">
+            <input
+              id="semantic-query"
+              name="query"
+              type="search"
+              placeholder="Try: NATO enlargement, Moscow, Balkans diplomacy"
+              autocomplete="off"
+            >
+            <button type="submit">Search</button>
+          </div>
+        </form>
+        <p id="semantic-status" class="status-pill">Loading semantic prototype data...</p>
+      </section>
+      <section class="card">
         <div class="section-heading">
-          <h2>About semantic search</h2>
-          <p class="result-meta">Roadmap item · not yet wired to the full corpus</p>
+          <h2>Top matching chunks</h2>
+          <p id="semantic-summary">Enter a query to rank the extracted chunk index.</p>
         </div>
-        <p>Semantic search will rank passages drawn from the extracted text of every released PDF in this case. Building it requires text extraction across the full corpus and an embedding index, which has not yet been produced. Until then, the manifest and keyword search are the supported entry points for research.</p>
+        <div id="semantic-results" class="results-list">
+          <p class="empty-state">Enter a query to search the extracted chunk index.</p>
+        </div>
       </section>
     </main>
     <footer class="site-footer">
       <div class="layout">
-        <p class="disclaimer">Unofficial research tool. Not affiliated with the U.S. Department of State.</p>
-        <p>Document metadata is harvested from the State Department FOIA Library for case F-2017-13804. PDFs are linked at their original source on <code>foia.state.gov</code> and are not redistributed by this site.</p>
+        <p>Raw PDFs stay out of Git and GitHub Pages. Use the source links or a local gitignored cache for document retrieval.</p>
       </div>
     </footer>
     <script src="./assets/js/site.js" defer></script>
+    <script src="./assets/js/semantic.js" defer></script>
   </body>
 </html>

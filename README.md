@@ -2,7 +2,7 @@
 
 This repository builds a public GitHub Pages website for State Department FOIA case `F-2017-13804`, focused on supporting FRUS compilers and researchers working on Clinton administration history.
 
-The first MVP is intentionally sample-data-first. It demonstrates the static-site workflow, per-document pages, keyword search integration, and a prototype semantic search layer without requiring the full FOIA corpus or any paid services.
+The project now includes the harvested case manifest and extracted text for the public records currently discovered for this case. It still keeps the full PDF corpus out of Git: PDFs can be mirrored locally into `data/pdfs/`, but the public site links back to the State Department source files.
 
 ## Who this is for
 
@@ -20,11 +20,13 @@ The project uses a static-site architecture:
 - A lightweight browser-side semantic search prototype built from precomputed chunks
 - GitHub Actions for repeatable build and deployment to GitHub Pages
 
-The MVP keeps raw PDFs out of the repository. The repo stores only metadata, extracted text, generated HTML, and search artifacts. That keeps the project lightweight, avoids duplicating the State Department source corpus, and makes GitHub Pages deployment practical.
+The MVP keeps raw PDFs out of the repository. The repo stores metadata, extracted text, source scripts, and static assets; GitHub Actions regenerates document HTML and search artifacts during deployment. That keeps the project lightweight, avoids duplicating the State Department source corpus, and makes GitHub Pages deployment practical.
 
-## Sample-first workflow
+## Data modes
 
-The repository ships with five synthetic placeholder records in `data/sample_manifest.json`. These are not real FOIA releases. They exist only to exercise the build pipeline and user interface before a real harvester is wired in.
+The repository ships with five synthetic placeholder records in `data/sample_manifest.json`. These are not real FOIA releases. They exist only to exercise the build pipeline and user interface.
+
+The default production workflow uses `data/manifest.json`, which is the harvested manifest for case `F-2017-13804`. Extracted text lives under `data/text/`. Raw PDFs, raw debug responses, and build reports are local-only and gitignored.
 
 ## Quick start
 
@@ -34,17 +36,22 @@ source .venv/bin/activate
 pip install -r requirements.txt
 npm install
 npm run build
+npm run audit
 npm run serve
 ```
 
 Then open `http://localhost:8000`.
 
+When `data/pdfs/` contains locally cached PDFs, the generated collection UI automatically surfaces local download links and batch-download actions. The local server maps those gitignored files under `/pdfs/` without committing them to GitHub.
+
+To refresh the full corpus locally, run the harvest/download/extract commands in the harvesting section before `npm run build`.
+
 ## What the build does
 
 `npm run build` runs the full MVP pipeline:
 
-1. `python3 scripts/build_site.py`
-2. `python3 scripts/build_chunks.py`
+1. `python3 scripts/build_site.py --manifest data/manifest.json --out site`
+2. `python3 scripts/build_chunks.py --manifest data/manifest.json`
 3. `python3 scripts/build_semantic_index.py`
 4. `pagefind --site site`
 
@@ -54,19 +61,22 @@ That produces:
 - `site/search.html`
 - `site/semantic.html`
 - `site/docs/*.html`
+- `site/assets/search/manifest.json`
 - `site/assets/search/chunks.json`
 - `site/assets/search/semantic_index.json`
 - `site/pagefind/*`
+
+Those files are deployment artifacts. They are rebuilt locally and in GitHub Actions rather than committed.
 
 ## Running a sample build without Node
 
 If you only want to exercise the Python portion first:
 
 ```bash
-python3 scripts/build_site.py
-python3 scripts/build_chunks.py
+python3 scripts/build_site.py --manifest data/sample_manifest.json --out site
+python3 scripts/build_chunks.py --manifest data/sample_manifest.json
 python3 scripts/build_semantic_index.py
-python3 -m http.server 8000 --directory site
+python3 scripts/serve_site.py
 ```
 
 This generates the site and semantic prototype pages. Keyword search becomes active after `npm run build:search` creates the Pagefind index.
@@ -83,40 +93,61 @@ python3 scripts/build_site.py --manifest data/manifest.json --out site
 npm run build:search
 ```
 
+To harvest the full case metadata set and prepare a local PDF mirror workflow:
+
+```bash
+python3 scripts/harvest_foia.py --case-number F-2017-13804 --limit 0 --out data/manifest.json
+python3 scripts/download_pdfs.py --manifest data/manifest.json --out data/pdfs --limit 0 --update-manifest
+python3 scripts/extract_text.py --manifest data/manifest.json --out data/text --pdf-dir data/pdfs --limit 0 --skip-existing --update-manifest
+python3 scripts/build_site.py --manifest data/manifest.json --out site
+npm run build:search
+npm run audit
+```
+
 Useful options:
 
 - `--dry-run` discovers records and prints a summary without writing `data/manifest.json`
 - `--debug` saves raw HTML and JSON responses under `data/raw/` for troubleshooting
 - `--sample` keeps the placeholder-only mode for offline development
+- `scripts/download_pdfs.py` stores PDFs in `data/pdfs/`, writes checksums and byte counts into the manifest when `--update-manifest` is used, and writes a JSON report under `data/reports/`
+- `scripts/serve_site.py` exposes locally cached PDFs under `/pdfs/` so the GUI can download them one at a time or in batches
+- `scripts/audit_collection.py` reports compiler-readiness metrics such as cached PDF count, extracted text count, duplicate IDs, generated pages, and search artifacts
 
 The current live strategy is intentionally cautious:
 
 - fetch the FOIA search page to confirm the search UI is present
 - call the FOIA metadata endpoint using the same parameter shape the site’s JavaScript uses
-- normalize the returned metadata into this repository’s manifest schema
-- stop at metadata and source URLs rather than downloading any PDFs
+- normalize the returned metadata into this repository’s manifest schema, including posted date, document type, from/to fields, collection, raw release code, and harvest timestamp when supplied
+- stop at metadata and source URLs during harvest, then let the separate local cache step fetch PDFs deliberately
 
 If the State Department changes the live endpoint shape, the script fails gracefully and prints diagnostic guidance instead of silently writing bad output.
 
-## Extracting text later
+## Extracting text from local PDFs
 
-The text extraction script is also a placeholder:
+The extraction script works from a local PDF cache and does not fetch PDFs on its own:
 
 ```bash
-python3 scripts/extract_text.py --manifest data/manifest.json --out data/text --limit 10
+python3 scripts/extract_text.py --manifest data/manifest.json --out data/text --pdf-dir data/pdfs --limit 10 --update-manifest
 ```
 
-The future extraction pipeline should support:
+The current extractor can:
 
-- `pypdf` or `pdfplumber` for machine-readable PDFs
-- OCR for scanned image PDFs when necessary
-- per-document `.txt` outputs referenced from the manifest
+- read machine-readable text from locally cached PDFs with `pypdf`
+- write one `.txt` file per document under `data/text/`
+- update manifest `text_path`, page count, character count, extraction status, and OCR status values
+- optionally attempt OCR with `--ocr` when `ocrmypdf` is installed locally
 
-It should never download or process the full corpus by default during normal development.
+The next extraction improvement is layout-aware extraction with `pdfplumber` for documents where plain `pypdf` text is too noisy.
+
+It still does not download the corpus by default during normal development. That remains a separate deliberate step.
 
 ## Keyword search
 
-Keyword search uses Pagefind. Each generated document page contains visible metadata and document text, so Pagefind can surface useful result titles and snippets directly from static HTML. The search UI lives at `site/search.html` and loads the Pagefind assets after `npm run build:search`.
+Keyword search uses Pagefind when `site/pagefind/` has been generated. Each generated document page contains visible metadata and document text, so Pagefind can surface useful result titles and snippets directly from static HTML. The search UI lives at `site/search.html` and loads the Pagefind assets after `npm run build:search`.
+
+If Pagefind assets are missing in a development build, the page falls back to a manifest-based browser search so compilers can still search IDs, dates, titles, release status, source URLs, and text snippets.
+
+If extracted text is not available yet, Pagefind still indexes metadata-rich document pages, including titles, document IDs, dates, release status, and source links.
 
 Planned future enhancements include filters for:
 
@@ -128,10 +159,11 @@ Planned future enhancements include filters for:
 
 The semantic search page at `site/semantic.html` is labeled as an AI-enhanced prototype. For the MVP:
 
-- Python chunks the sample text into small passages
+- Python chunks extracted text into small passages when local text is available
 - chunks are written to `site/assets/search/chunks.json`
-- browser-side JavaScript ranks chunks by keyword overlap
-- the code is structured so real embeddings can replace the placeholder scoring later
+- `scripts/build_semantic_index.py` builds a deterministic local hashed TF-IDF vector index
+- browser-side JavaScript ranks chunks with a combined local vector and keyword score
+- the code is structured so model embeddings can replace the local vector index later
 
 No API keys or paid services are exposed in the frontend.
 

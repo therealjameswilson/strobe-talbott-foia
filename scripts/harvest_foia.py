@@ -5,6 +5,7 @@ import json
 import sys
 import time
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import urljoin
@@ -38,6 +39,13 @@ class HarvestRecord:
     source_pdf_url: str
     release_status: str
     text_path: str
+    posted_date: str = ""
+    document_type: str = ""
+    from_field: str = ""
+    to_field: str = ""
+    collection: str = ""
+    raw_release_status: str = ""
+    harvested_at: str = ""
 
 
 class HarvestError(RuntimeError):
@@ -68,14 +76,27 @@ class HarvestClient:
     debug: DebugRecorder
     last_request_started_at: float | None = None
 
-    def get(self, url: str, *, params: dict[str, Any] | None = None) -> Response:
+    def get(
+        self,
+        url: str,
+        *,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        stream: bool = False,
+    ) -> Response:
         if self.last_request_started_at is not None:
             elapsed = time.monotonic() - self.last_request_started_at
             if elapsed < RATE_LIMIT_SECONDS:
                 time.sleep(RATE_LIMIT_SECONDS - elapsed)
 
         self.last_request_started_at = time.monotonic()
-        response = self.session.get(url, params=params, timeout=REQUEST_TIMEOUT_SECONDS)
+        response = self.session.get(
+            url,
+            params=params,
+            headers=headers,
+            timeout=REQUEST_TIMEOUT_SECONDS,
+            stream=stream,
+        )
         response.raise_for_status()
         return response
 
@@ -175,6 +196,18 @@ def normalize_date(raw_value: Any) -> str:
     return normalized
 
 
+def clean_text(raw_value: Any) -> str:
+    return " ".join(str(raw_value or "").split())
+
+
+def first_text(api_record: dict[str, Any], *keys: str) -> str:
+    for key in keys:
+        value = clean_text(api_record.get(key))
+        if value:
+            return value
+    return ""
+
+
 def map_release_status(raw_code: Any) -> str:
     code = str(raw_code or "").strip().upper()
     exact_map = {
@@ -188,7 +221,7 @@ def map_release_status(raw_code: Any) -> str:
     if code.startswith("RIP"):
         return "RELEASE IN PART"
     if not code:
-        return "UNKNOWN"
+        return "UNSPECIFIED IN SOURCE"
     return code
 
 
@@ -202,8 +235,9 @@ def normalize_pdf_url(pdf_link: Any) -> str:
 def normalize_record(api_record: dict[str, Any], case_number: str) -> HarvestRecord:
     source_pdf_url = normalize_pdf_url(api_record.get("pdfLink"))
     record_id = normalize_document_id(Path(source_pdf_url).stem)
-    title = str(api_record.get("subject") or api_record.get("casesubject") or record_id).strip()
+    title = clean_text(api_record.get("subject") or api_record.get("casesubject") or record_id)
     date = normalize_date(api_record.get("docdate")) or normalize_date(api_record.get("posteddate"))
+    raw_release_status = clean_text(api_record.get("releasedecision"))
 
     return HarvestRecord(
         id=record_id,
@@ -211,8 +245,15 @@ def normalize_record(api_record: dict[str, Any], case_number: str) -> HarvestRec
         title=title or record_id,
         date=date,
         source_pdf_url=source_pdf_url,
-        release_status=map_release_status(api_record.get("releasedecision")),
-        text_path=f"data/text/{record_id}.txt",
+        release_status=map_release_status(raw_release_status),
+        text_path="",
+        posted_date=normalize_date(api_record.get("posteddate")),
+        document_type=first_text(api_record, "doctype", "docType", "documenttype"),
+        from_field=first_text(api_record, "from", "docfrom", "sender"),
+        to_field=first_text(api_record, "to", "docto", "recipient"),
+        collection=first_text(api_record, "collection", "collectionname", "collectiontitle"),
+        raw_release_status=raw_release_status,
+        harvested_at=datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
     )
 
 
@@ -310,7 +351,9 @@ def harvest_live_manifest(
     start = 0
     total_hits: int | None = None
 
-    while len(collected) < limit:
+    harvest_limit = limit if limit > 0 else sys.maxsize
+
+    while len(collected) < harvest_limit:
         payload = fetch_search_page(
             client,
             case_number=case_number,
@@ -326,7 +369,7 @@ def harvest_live_manifest(
         page_records = extract_records_from_payload(
             payload,
             case_number=case_number,
-            remaining=limit - len(collected),
+            remaining=harvest_limit - len(collected),
             seen_ids=seen_ids,
         )
         if not page_records:
@@ -351,7 +394,9 @@ def harvest_live_manifest(
             "Run with --debug and inspect the saved JSON under data/raw/."
         )
 
-    return collected[:limit]
+    if limit > 0:
+        return collected[:limit]
+    return collected
 
 
 def harvest_manifest(case_number: str, *, limit: int, sample: bool, debug: bool) -> list[HarvestRecord]:

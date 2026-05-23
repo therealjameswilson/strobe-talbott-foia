@@ -4,6 +4,7 @@ import argparse
 import json
 import re
 import sys
+from collections import Counter
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -42,6 +43,7 @@ def build_chunks(
     *,
     chunk_size: int,
     overlap: int,
+    max_keywords: int,
     limit: int | None = None,
 ) -> dict[str, object]:
     manifest_path = manifest_path.resolve()
@@ -53,7 +55,7 @@ def build_chunks(
     payload: dict[str, object] = {
         "version": "prototype-v1",
         "search_mode": "keyword-overlap-placeholder",
-        "note": "Chunks are generated from sample text for a client-side semantic search prototype.",
+        "note": "Chunks are generated from extracted document text when available for a client-side semantic search prototype.",
         "chunks": [],
     }
 
@@ -63,7 +65,10 @@ def build_chunks(
     for record in records:
         text = read_document_text(record, manifest_path)
         for chunk_index, chunk in enumerate(chunk_text(text, chunk_size, overlap), start=1):
-            keywords = sorted(set(tokenize(chunk)))
+            keywords = [
+                token
+                for token, _count in Counter(tokenize(chunk)).most_common(max_keywords)
+            ]
             chunks.append(
                 {
                     "chunk_id": f"{record.id}-{chunk_index}",
@@ -89,8 +94,9 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build chunk data for the semantic search prototype.")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST, help="Path to the JSON manifest file.")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT_PATH, help="Path to the generated chunks JSON file.")
-    parser.add_argument("--chunk-size", type=int, default=90, help="Maximum words per chunk.")
-    parser.add_argument("--overlap", type=int, default=18, help="Word overlap between chunks.")
+    parser.add_argument("--chunk-size", type=int, default=420, help="Maximum words per chunk.")
+    parser.add_argument("--overlap", type=int, default=60, help="Word overlap between chunks.")
+    parser.add_argument("--max-keywords", type=int, default=48, help="Maximum keyword signatures per chunk.")
     parser.add_argument("--limit", type=int, default=None, help="Optional limit for the number of records to chunk.")
     return parser.parse_args()
 
@@ -102,6 +108,7 @@ def main() -> None:
         args.out,
         chunk_size=args.chunk_size,
         overlap=args.overlap,
+        max_keywords=args.max_keywords,
         limit=args.limit,
     )
     print(f"Wrote {len(payload['chunks'])} chunks to {args.out}.")

@@ -4,5 +4,12 @@ __pycache__/
 *.pyc
 node_modules/
 data/raw/
-data/descriptions/pdfs/
-data/descriptions/cache/
+data/pdfs/
+data/pdfs_ocr/
+data/reports/
+site/docs/
+site/pagefind/
+site/assets/search/chunks.json
+site/assets/search/manifest.json
+site/assets/search/semantic_index.json
+site/assets/search/doc_pages.json
