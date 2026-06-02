@@ -225,6 +225,77 @@ main.layout {
   gap: 1rem;
 }
 
+.compiler-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.35fr);
+  gap: 1rem;
+}
+
+.workflow-card {
+  display: grid;
+  align-content: start;
+  gap: 0.85rem;
+}
+
+.workflow-card h2 {
+  margin: 0;
+}
+
+.step-list {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.step-list li + li {
+  margin-top: 0.55rem;
+}
+
+.volume-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.volume-link,
+.shortcut-link {
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 243, 214, 0.055);
+  color: var(--ink-strong);
+  text-decoration: none;
+}
+
+.volume-link:hover,
+.shortcut-link:hover {
+  border-color: var(--accent-strong);
+  background: rgba(255, 243, 214, 0.11);
+}
+
+.volume-link span,
+.volume-link small {
+  color: var(--ink-soft);
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+}
+
+.volume-link span {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.volume-link strong {
+  line-height: 1.25;
+}
+
+.shortcut-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.75rem;
+}
+
 .stat-card h2 {
   font-size: clamp(2.2rem, 5vw, 3.5rem);
 }
@@ -524,6 +595,10 @@ button:disabled,
 
 @media (max-width: 860px) {
   .tool-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .compiler-grid {
     grid-template-columns: 1fr;
   }
 }

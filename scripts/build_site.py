@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import re
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
@@ -307,6 +308,39 @@ def is_sample_collection(records: list[DocumentRecord]) -> bool:
     return all("foia.state.gov/example/" in record.source_pdf_url for record in records)
 
 
+def record_year(record: DocumentRecord) -> int | None:
+    match = re.search(r"\b(?:19|20)\d{2}\b", record.date)
+    if match is None:
+        return None
+    return int(match.group(0))
+
+
+def count_records_in_year_range(records: list[DocumentRecord], start_year: int, end_year: int) -> int:
+    return sum(
+        1
+        for record in records
+        if (year := record_year(record)) is not None and start_year <= year <= end_year
+    )
+
+
+def count_topic_records(records: list[DocumentRecord], keywords: tuple[str, ...]) -> int:
+    lowered_keywords = tuple(keyword.lower() for keyword in keywords)
+    count = 0
+    for record in records:
+        haystack = " ".join(
+            [
+                record.title,
+                record.from_field,
+                record.to_field,
+                record.collection,
+                record.document_type,
+            ]
+        ).lower()
+        if any(keyword in haystack for keyword in lowered_keywords):
+            count += 1
+    return count
+
+
 def render_layout(
     *,
     page_title: str,
@@ -375,6 +409,15 @@ def render_index_page(
     full_release_count = sum(1 for record in records if record.release_status == "RELEASE IN FULL")
     part_release_count = sum(1 for record in records if record.release_status == "RELEASE IN PART")
     local_pdf_count = sum(1 for record in records if record.id in local_pdf_ids)
+    clinton_year_count = count_records_in_year_range(records, 1993, 2000)
+    russia_count = count_topic_records(
+        records, ("russia", "moscow", "yeltsin", "gore", "chernomyrdin", "primakov", "kozyrev")
+    )
+    nato_count = count_topic_records(records, ("nato", "european security", "enlargement"))
+    balkans_count = count_topic_records(records, ("bosnia", "balkan", "kosovo", "serbia", "croatia", "dayton"))
+    arms_control_count = count_topic_records(
+        records, ("arms", "nuclear", "start", "ctbt", "nonproliferation", "missile")
+    )
     sample_mode = is_sample_collection(records)
     release_options = "\n".join(
         f'              <option value="{html.escape(status, quote=True)}">{html.escape(status.title())}</option>'
@@ -391,10 +434,12 @@ def render_index_page(
         <p class="eyebrow">Research Console</p>
         <h2>{heading_label} for case {EXPECTED_CASE_NUMBER}</h2>
         <p class="lede">Built for FRUS compilers and Clinton administration researchers who need a crisp metadata register, stable citations, and fast access to Strobe Talbott-related FOIA records.</p>
-        <p>{html.escape(mode_note)} Metadata pages are live now; extracted full text can be layered in as PDFs are processed locally.</p>
+        <p>{html.escape(mode_note)} Use this as a source desk: search the case, export source URLs, open generated document pages, and move promising records into the relevant FRUS volume assistant.</p>
         <div class="action-row">
           <a class="button-link" href="./search.html">Open keyword search</a>
           <a class="button-link button-link-secondary" href="./semantic.html">Open semantic prototype</a>
+          <a class="button-link button-link-secondary" href="https://therealjameswilson.github.io/FRUSaccelerate/">Compiler Assist</a>
+          <a class="button-link button-link-secondary" href="https://therealjameswilson.github.io/nara-scout/">NARA Scout</a>
         </div>
       </section>
       <section class="summary-grid">
@@ -418,6 +463,61 @@ def render_index_page(
           <h2>{local_pdf_count}</h2>
           <p class="stat-copy">documents with local cached PDFs ready for in-browser download</p>
         </article>
+        <article class="card stat-card">
+          <p class="eyebrow">Clinton Years</p>
+          <h2>{clinton_year_count}</h2>
+          <p class="stat-copy">records dated 1993-2000 for Clinton-era volume triage</p>
+        </article>
+      </section>
+      <section class="compiler-grid" aria-label="Compiler routing">
+        <article class="card workflow-card">
+          <p class="eyebrow">Compiler Triage</p>
+          <h2>Turn the FOIA case into volume leads</h2>
+          <ol class="step-list">
+            <li>Filter by document ID, date, release status, or place/person keyword.</li>
+            <li>Open the generated document page for stable metadata, source PDF, citation text, and extracted text.</li>
+            <li>Select filtered rows and export URLs for a source-note packet or NARA Scout follow-up.</li>
+            <li>Route confirmed records into the volume desk that owns the policy lane.</li>
+          </ol>
+        </article>
+        <article class="card workflow-card">
+          <p class="eyebrow">High-yield FRUS lanes</p>
+          <h2>Likely Clinton volume destinations</h2>
+          <div class="volume-list">
+            <a class="volume-link" href="https://therealjameswilson.github.io/Clinton-Russia-High-Level/">
+              <span>1993-2000 Volume XVIII</span>
+              <strong>Russia: High-Level Contacts</strong>
+              <small>{russia_count} Russia/Moscow/Yeltsin metadata hits in this case.</small>
+            </a>
+            <a class="volume-link" href="https://therealjameswilson.github.io/Clinton-NATO-European-Security/">
+              <span>1993-2000 Volume XVII</span>
+              <strong>North Atlantic Treaty Organization; European Security</strong>
+              <small>{nato_count} NATO/security metadata hits in this case.</small>
+            </a>
+            <a class="volume-link" href="https://therealjameswilson.github.io/Balkans-93-95/">
+              <span>1993-2000 Volume XV</span>
+              <strong>Wars in the Balkans, 1993-1995</strong>
+              <small>{balkans_count} Balkans/Dayton/Kosovo metadata hits in this case.</small>
+            </a>
+            <a class="volume-link" href="https://therealjameswilson.github.io/armscontrol-97-2000/">
+              <span>1993-2000 Volumes VII-VIII</span>
+              <strong>Arms Control and Nonproliferation</strong>
+              <small>{arms_control_count} arms-control and nuclear metadata hits in this case.</small>
+            </a>
+          </div>
+        </article>
+      </section>
+      <section class="card source-system-card">
+        <div class="section-heading">
+          <h2>Source-system shortcuts</h2>
+          <p>Keep the FOIA case, Scout searches, and official FRUS status in the same working loop.</p>
+        </div>
+        <div class="shortcut-row">
+          <a class="shortcut-link" href="https://history.state.gov/historicaldocuments/status-of-the-series">Official FRUS status</a>
+          <a class="shortcut-link" href="https://therealjameswilson.github.io/FRUSaccelerate/#compiler-sites">All Compiler Assist desks</a>
+          <a class="shortcut-link" href="https://therealjameswilson.github.io/nara-scout/">NARA Scout</a>
+          <a class="shortcut-link" href="./assets/search/manifest.json">Machine manifest JSON</a>
+        </div>
       </section>
       <section class="card">
         <div class="section-heading">
